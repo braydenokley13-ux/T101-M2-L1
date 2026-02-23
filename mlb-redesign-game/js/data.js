@@ -1,6 +1,6 @@
 /**
- * MLB Money Maker - Game Data
- * All 30 MLB teams, real player data, and financial metrics
+ * MLB Money Maker v2 - Game Data
+ * All 30 MLB teams, real player data, financial metrics, and v2 content
  */
 
 const MLBData = {
@@ -23,6 +23,30 @@ const MLBData = {
         minSalary: 0.75, // $750K minimum
         smallMarketPayroll: { min: 80, max: 120 }, // $80M-$120M
         bigMarketPayroll: { min: 200, max: 290 } // $200M-$290M
+    },
+
+    // Historical deal comparison for results screen
+    historicalDeals: {
+        current: {
+            label: "Current MLB Deal (2022-28)",
+            playerPool: 3.7,      // ~$3.7B estimated 8yr equiv
+            ownerShare: 2.5,
+            minSalary: 720,       // $720K at time of deal
+            revenueShare: 33,
+            streaming: 15,
+            salaryShare: 48.5,
+            startTime: 2          // 7:30 PM avg
+        },
+        nba: {
+            label: "NBA Media Deal (2025-36)",
+            totalValue: 76,       // $76B over 11 years
+            annualValue: 6.9
+        },
+        nfl: {
+            label: "NFL Media Deal (2023-33)",
+            totalValue: 113,
+            annualValue: 11.3
+        }
     },
 
     // All 30 MLB Teams with real data
@@ -406,7 +430,7 @@ const MLBData = {
             title: "MLBPA Executive Director",
             emoji: "happy",
             comments: {
-                veryHappy: "This is a championship deal for the players! ⚾",
+                veryHappy: "This is a championship deal for the players!",
                 happy: "The players are pleased with these terms.",
                 neutral: "We can work with this, but we'd like more.",
                 unhappy: "The players deserve better than this!",
@@ -445,7 +469,7 @@ const MLBData = {
             title: "Millions of Baseball Supporters",
             emoji: "happy",
             comments: {
-                veryHappy: "Best. Season. Ever! Go baseball! 🎉",
+                veryHappy: "Best. Season. Ever! Go baseball!",
                 happy: "Excited for competitive baseball!",
                 neutral: "Hope we can actually watch the games...",
                 unhappy: "Same teams winning, games too late!",
@@ -453,6 +477,267 @@ const MLBData = {
             }
         }
     },
+
+    // ===== V2: DEMAND TEMPLATES =====
+    // Used by Calculations.generateDemand()
+    demandTemplates: {
+        players: [
+            {
+                condition: (s) => s.minSalary < 900,
+                demand: "Minimum salary must be at least $900K — anything less is disrespectful to our younger players.",
+                fix: "Raise minimum salary above $900K",
+                check: (s) => s.minSalary >= 900
+            },
+            {
+                condition: (s) => s.salaryShare < 50,
+                demand: "We need at least 50% player salary share of revenue. Players drive this league.",
+                fix: "Set salary share to 50% or higher",
+                check: (s) => s.salaryShare >= 50
+            },
+            {
+                condition: (s) => (s.allocation.players / 8.0) < 0.40,
+                demand: "Our salary pool needs to be at least 40% of the total deal. We won't accept less.",
+                fix: "Allocate at least $3.2B (40%) to Players",
+                check: (s) => (s.allocation.players / 8.0) >= 0.40
+            }
+        ],
+        owners: [
+            {
+                condition: (s) => s.revenueShare > 45,
+                demand: "Revenue sharing above 45% kills small-market incentives. We need that number lower.",
+                fix: "Lower revenue sharing below 45%",
+                check: (s) => s.revenueShare <= 45
+            },
+            {
+                condition: (s) => s.salaryShare > 58,
+                demand: "Player salary share above 58% makes many franchises unprofitable. Reduce it.",
+                fix: "Lower player salary share to 58% or less",
+                check: (s) => s.salaryShare <= 58
+            },
+            {
+                condition: (s) => (s.allocation.owners / 8.0) < 0.25,
+                demand: "Owner profit allocation below 25% is untenable. Franchises need to sustain operations.",
+                fix: "Allocate at least $2.0B (25%) to Owners",
+                check: (s) => (s.allocation.owners / 8.0) >= 0.25
+            }
+        ],
+        networks: [
+            {
+                condition: (s) => s.startTime > 2,
+                demand: "Games starting after 7:30 PM hurt East Coast ratings. We need a 7:30 PM or earlier slot.",
+                fix: "Set game start time to 7:30 PM or earlier",
+                check: (s) => s.startTime <= 2
+            },
+            {
+                condition: (s) => s.streaming > 50,
+                demand: "More than 50% streaming exclusives will gut our cable ratings. Reduce that number.",
+                fix: "Lower streaming-only games below 50%",
+                check: (s) => s.streaming <= 50
+            },
+            {
+                condition: (s) => (s.allocation.networks / 8.0) < 0.12,
+                demand: "Rights fees below 12% of the deal don't justify our investment in MLB coverage.",
+                fix: "Allocate at least $0.96B (12%) to Networks",
+                check: (s) => (s.allocation.networks / 8.0) >= 0.12
+            }
+        ],
+        fans: [
+            {
+                condition: (s) => s.startTime > 3,
+                demand: "Games starting at 9+ PM are impossible for families on the East Coast. Move them earlier.",
+                fix: "Set game start time to 8:00 PM or earlier",
+                check: (s) => s.startTime <= 3
+            },
+            {
+                condition: (s) => s.revenueShare < 25,
+                demand: "Revenue sharing below 25% means small-market teams can't compete. Fans lose interest.",
+                fix: "Raise revenue sharing to 25% or higher",
+                check: (s) => s.revenueShare >= 25
+            },
+            {
+                condition: (s) => s.streaming > 60,
+                demand: "60%+ streaming exclusives means millions of fans lose access. We can't support this deal.",
+                fix: "Lower streaming-only games to 60% or less",
+                check: (s) => s.streaming <= 60
+            }
+        ]
+    },
+
+    // ===== V2: BREAKING NEWS HEADLINES =====
+    // Condition-mapped headlines for the news ticker
+    newsHeadlines: [
+        // Streaming
+        { condition: (s) => s.streaming > 70, text: "EXCLUSIVE: League insiders warn streaming overload will fragment fan base and tank ratings" },
+        { condition: (s) => s.streaming > 50 && s.streaming <= 70, text: "Players Union rep: 'Too many games hidden on streaming — rookie fans can't afford five apps'" },
+        { condition: (s) => s.streaming < 15, text: "Streaming advocates: 'Nearly no online games is a missed revenue opportunity for the league'" },
+        { condition: (s) => s.streaming >= 20 && s.streaming <= 40, text: "Analysts praise streaming balance: 'This is the right mix of cable and digital for MLB'" },
+        // Start times
+        { condition: (s) => s.startTime >= 4, text: "Fan group threatens boycott: '9 PM starts are impossible for kids — East Coast families furious'" },
+        { condition: (s) => s.startTime >= 3, text: "Study shows late game starts cost MLB 8% of casual East Coast viewers per 30-minute delay" },
+        { condition: (s) => s.startTime <= 1, text: "Networks warn: '6-7 PM starts compete with local news and cut into prime advertising windows'" },
+        { condition: (s) => s.startTime === 2, text: "Insiders say 7:30 PM is the 'Goldilocks zone' for MLB — good for both coasts and ad revenue" },
+        // Player salaries
+        { condition: (s) => s.minSalary < 500, text: "MLBPA: '$500K minimum salary is an insult — that's below a living wage in major league cities'" },
+        { condition: (s) => s.minSalary >= 1200, text: "Owners grumble about $1.2M+ minimum salary: 'Not all 40-man roster players deserve that floor'" },
+        { condition: (s) => s.minSalary >= 900 && s.minSalary < 1200, text: "Veteran players praise proposed minimum salary increase: 'This is what respect looks like'" },
+        // Revenue sharing
+        { condition: (s) => s.revenueShare > 50, text: "Large-market owners revolt: '50%+ revenue sharing penalizes our investment in winning teams'" },
+        { condition: (s) => s.revenueShare < 20, text: "Small-market GMs sound alarm: 'Under 20% revenue sharing makes teams like ours uncompetitive'" },
+        { condition: (s) => s.revenueShare >= 30 && s.revenueShare <= 45, text: "Commissioner praises balanced revenue sharing proposal: 'This is how you build a healthy league'" },
+        // Salary share
+        { condition: (s) => s.salaryShare > 62, text: "Wall Street analysts: 'Player salary share above 62% will make multiple franchises unprofitable'" },
+        { condition: (s) => s.salaryShare < 43, text: "MLBPA threatens work stoppage: 'A 43% player share is the lowest in any major US sports league'" },
+        // Overall score
+        { condition: (s, sat) => sat && sat.overall >= 85, text: "BREAKING: Sources say all four stakeholder groups are close to historic agreement — deal near" },
+        { condition: (s, sat) => sat && sat.overall >= 75, text: "Negotiations progressing: 'We're seeing real compromise on all sides,' says neutral mediator" },
+        { condition: (s, sat) => sat && sat.overall < 50, text: "ALERT: Multiple stakeholders express serious concerns — deal may be in jeopardy" },
+        { condition: (s, sat) => sat && sat.players < 50, text: "Players Union considering work stoppage: 'The current terms are not acceptable to our members'" },
+        { condition: (s, sat) => sat && sat.owners < 50, text: "Owner coalition threatens to lock out players if deal terms don't improve for franchises" },
+        { condition: (s, sat) => sat && sat.networks < 50, text: "ESPN and Fox reportedly exploring NFL and NBA content as MLB deal talks stall" },
+        { condition: (s, sat) => sat && sat.fans < 50, text: "Fan surveys show 38% would consider reducing baseball viewership under current deal terms" },
+        // Allocation
+        { condition: (s) => (s.allocation.players / 8.0) > 0.55, text: "Owners warn: 'Giving players over 55% of the deal leaves franchises with razor-thin margins'" },
+        { condition: (s) => (s.allocation.players / 8.0) < 0.35, text: "MLBPA: 'Less than 35% for players is historically low — comparable to minor league economics'" },
+        // Generic/default
+        { condition: () => true, text: "MLB Media Deal Negotiations: Stakeholders gather in New York for final round of talks" },
+        { condition: () => true, text: "Analysts: 'The $8B deal will set the economic tone for baseball through 2033'" },
+        { condition: () => true, text: "All 30 teams watching closely as executives finalize national media rights package" }
+    ],
+
+    // ===== V2: ADVISOR TIPS =====
+    // Contextual tips shown in the Advisor tab
+    advisorTips: [
+        // Allocation guidance
+        {
+            priority: 10,
+            condition: (s, sat) => sat && sat.players < 55,
+            icon: "⚾",
+            text: "Players want 40-50% of the total deal. You're currently at " +
+                  "{{playersPercent}}% — try bumping their allocation."
+        },
+        {
+            priority: 10,
+            condition: (s, sat) => sat && sat.owners < 55,
+            icon: "🏟️",
+            text: "Owners want 30-40% of the deal for franchise sustainability. Consider increasing their share."
+        },
+        {
+            priority: 10,
+            condition: (s, sat) => sat && sat.networks < 55,
+            icon: "📺",
+            text: "Networks want rights fees of 15-25% of the deal. They also strongly prefer 7-8 PM start times for prime ratings."
+        },
+        {
+            priority: 10,
+            condition: (s, sat) => sat && sat.fans < 55,
+            icon: "👥",
+            text: "Fans care most about competitive balance (revenue sharing 30-50%) and early start times (before 8 PM)."
+        },
+        // Streaming
+        {
+            priority: 8,
+            condition: (s) => s.streaming > 55,
+            icon: "📡",
+            text: "Streaming above 55% starts hurting both fan access and network cable ratings. A 20-40% split tends to keep everyone happier."
+        },
+        {
+            priority: 8,
+            condition: (s) => s.streaming < 10,
+            icon: "📡",
+            text: "Almost no streaming games frustrates digital-native fans and misses a big revenue opportunity for networks."
+        },
+        // Minimum salary
+        {
+            priority: 7,
+            condition: (s) => s.minSalary < 700,
+            icon: "💰",
+            text: "A minimum salary below $700K is below the current MLB floor. Players will push back hard on anything lower than $750K."
+        },
+        {
+            priority: 7,
+            condition: (s) => s.minSalary >= 1000,
+            icon: "💰",
+            text: "High minimum salaries ($1M+) are great for players but cut into owner margins on 40-man roster spots."
+        },
+        // Revenue sharing
+        {
+            priority: 9,
+            condition: (s) => s.revenueShare < 25,
+            icon: "⚖️",
+            text: "Revenue sharing below 25% leaves small-market teams unable to compete. This tanks fan satisfaction in those cities."
+        },
+        {
+            priority: 9,
+            condition: (s) => s.revenueShare > 50,
+            icon: "⚖️",
+            text: "Revenue sharing above 50% tends to reduce owner investment incentives. Large-market owners will push back strongly."
+        },
+        // Start time
+        {
+            priority: 8,
+            condition: (s) => s.startTime >= 4,
+            icon: "🕙",
+            text: "9 PM+ start times hurt East Coast families and casual fans. Networks also lose viewership after children's bedtimes."
+        },
+        {
+            priority: 8,
+            condition: (s) => s.startTime <= 0,
+            icon: "🕙",
+            text: "6 PM starts are tough for workers to catch in-person or on TV. Prime time (7-8 PM) maximizes audiences for networks."
+        },
+        // Salary share
+        {
+            priority: 7,
+            condition: (s) => s.salaryShare > 60,
+            icon: "📊",
+            text: "Player salary share above 60% of revenue will squeeze franchise profits, especially for mid-market teams."
+        },
+        {
+            priority: 7,
+            condition: (s) => s.salaryShare < 46,
+            icon: "📊",
+            text: "Salary share below 46% will anger the Players Union — they'll view it as a rollback from current terms."
+        },
+        // Stability
+        {
+            priority: 15,
+            condition: (s, sat) => sat && Calculations.checkStability(sat) === 'danger',
+            icon: "⚠️",
+            text: "DANGER: At least one stakeholder is close to walking away. Raise anyone below 50% before locking in this round."
+        },
+        {
+            priority: 15,
+            condition: (s, sat) => sat && Calculations.checkStability(sat) === 'warning',
+            icon: "⚠️",
+            text: "WARNING: Deal stability is shaky. Check who is below 60% satisfaction and adjust their key drivers."
+        },
+        // Positive feedback
+        {
+            priority: 3,
+            condition: (s, sat) => sat && sat.overall >= 80,
+            icon: "🏆",
+            text: "Looking strong! Keep all stakeholders above 60% to lock in a Silver or Gold tier deal."
+        },
+        {
+            priority: 3,
+            condition: (s, sat) => sat && sat.overall >= 90,
+            icon: "🏆",
+            text: "This is championship territory! To reach Gold, keep every stakeholder above 75% when you finalize."
+        },
+        // Generic
+        {
+            priority: 1,
+            condition: () => true,
+            icon: "💡",
+            text: "Use Round 1 to nail the big money split, then use Round 2 to fine-tune the deal details."
+        },
+        {
+            priority: 1,
+            condition: () => true,
+            icon: "💡",
+            text: "Mini-games in the Challenge Break unlock special deal perks — try completing them at 80%+ for the best bonuses."
+        }
+    ],
 
     // Game start time options
     startTimes: [
@@ -476,7 +761,29 @@ const MLBData = {
         silver: { min: 80, label: "SILVER", message: "SOLID DEAL! The league accepted your proposal. One group had to compromise." },
         bronze: { min: 70, label: "BRONZE", message: "ACCEPTABLE DEAL! The league signed your proposal, but some are unhappy." },
         fail: { min: 0, label: "FAILED", message: "DEAL COLLAPSED! Try again." }
-    }
+    },
+
+    // ===== V2: ROUND CONFIG =====
+    rounds: [
+        {
+            number: 1,
+            label: "Money Split",
+            description: "Allocate the $8 billion among the four stakeholder groups.",
+            unlocksDetails: false
+        },
+        {
+            number: 2,
+            label: "Deal Details",
+            description: "Fine-tune salaries, revenue sharing, broadcast times, and streaming.",
+            unlocksDetails: true
+        },
+        {
+            number: 3,
+            label: "Final Terms",
+            description: "Lock in your final deal. All sliders are active — this is your last chance.",
+            unlocksDetails: true
+        }
+    ]
 };
 
 // Helper function to get teams by market size
