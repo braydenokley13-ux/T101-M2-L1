@@ -31,7 +31,8 @@ const Interactions = {
     },
 
     /**
-     * Handle allocation slider changes
+     * Handle allocation slider changes — keeps total locked at $8B by
+     * redistributing the remaining budget proportionally among the other sliders.
      */
     handleAllocationSlider(e) {
         // Take snapshot before first change for undo
@@ -45,36 +46,107 @@ const Interactions = {
         const stakeholder = slider.id.replace('-slider', '');
         const value = parseFloat(slider.value);
 
-        // Update game state
-        Game.state.allocation[stakeholder] = value;
+        // Redistribute remaining budget among the other three sliders
+        const newValues = this.redistributeAllocation(stakeholder, value);
 
-        // Update UI
-        UI.updateAllocationDisplay(stakeholder, value);
+        // Apply new values to game state and DOM for all four sliders
+        ['players', 'owners', 'networks', 'league'].forEach(k => {
+            Game.state.allocation[k] = newValues[k];
+            const sliderEl = document.getElementById(`${k}-slider`);
+            if (sliderEl) sliderEl.value = newValues[k];
+            UI.updateAllocationDisplay(k, newValues[k]);
+        });
 
-        // Recalculate total and check validity
-        this.validateAllocation();
+        // Always hide the warning — total is guaranteed to be $8B
+        const warning = document.getElementById('allocation-warning');
+        if (warning) warning.style.display = 'none';
 
         // Update all satisfactions
         Game.updateSatisfactions();
     },
 
     /**
-     * Validate that allocations sum to $8B
+     * Redistribute $8B across all four allocation sliders so the total is
+     * always exactly $8B.  The moved slider keeps its new value; the other
+     * three are scaled proportionally, respecting their individual min/max.
      */
-    validateAllocation() {
-        const total = Game.state.allocation.players +
-                      Game.state.allocation.owners +
-                      Game.state.allocation.networks +
-                      Game.state.allocation.league;
+    redistributeAllocation(movedKey, rawValue) {
+        const TOTAL = 8.0;
+        const BOUNDS = {
+            players:  { min: 2.0, max: 5.0 },
+            owners:   { min: 1.0, max: 4.0 },
+            networks: { min: 0.5, max: 2.5 },
+            league:   { min: 0.3, max: 1.5 }
+        };
 
-        const warning = document.getElementById('allocation-warning');
-        const isValid = Math.abs(total - 8.0) <= 0.1;
+        const allKeys = ['players', 'owners', 'networks', 'league'];
+        const otherKeys = allKeys.filter(k => k !== movedKey);
 
-        if (warning) {
-            warning.style.display = isValid ? 'none' : 'flex';
+        // Clamp moved value to its slider bounds
+        const movedValue = Math.max(BOUNDS[movedKey].min, Math.min(BOUNDS[movedKey].max, rawValue));
+
+        const result = { [movedKey]: movedValue };
+        let remainingBudget = TOTAL - movedValue;
+        let freeKeys = [...otherKeys];
+
+        // Iteratively distribute the remaining budget proportionally.
+        // If any slider would go out of its bounds it gets clamped and its
+        // fixed value is subtracted before the next pass.
+        while (freeKeys.length > 0) {
+            const basisTotal = freeKeys.reduce((s, k) => s + Game.state.allocation[k], 0);
+
+            const proposed = {};
+            freeKeys.forEach(k => {
+                const w = basisTotal > 0 ? Game.state.allocation[k] / basisTotal : 1 / freeKeys.length;
+                proposed[k] = w * remainingBudget;
+            });
+
+            const newlyFixed = [];
+            const stillFree = [];
+
+            freeKeys.forEach(k => {
+                const { min, max } = BOUNDS[k];
+                if (proposed[k] < min) {
+                    result[k] = min;
+                    newlyFixed.push(k);
+                } else if (proposed[k] > max) {
+                    result[k] = max;
+                    newlyFixed.push(k);
+                } else {
+                    stillFree.push(k);
+                }
+            });
+
+            if (newlyFixed.length === 0) {
+                // No clamping needed — accept all tentative values
+                freeKeys.forEach(k => { result[k] = proposed[k]; });
+                break;
+            }
+
+            // Subtract clamped values from the remaining budget and retry
+            remainingBudget -= newlyFixed.reduce((s, k) => s + result[k], 0);
+            freeKeys = stillFree;
         }
 
-        return isValid;
+        // Round every value to one decimal place (matches slider step="0.1")
+        allKeys.forEach(k => {
+            result[k] = Math.round(result[k] * 10) / 10;
+        });
+
+        // Correct any floating-point drift so the sum is exactly $8B
+        const drift = Math.round((TOTAL - allKeys.reduce((s, k) => s + result[k], 0)) * 10) / 10;
+        if (Math.abs(drift) >= 0.1) {
+            for (const k of otherKeys) {
+                const adjusted = result[k] + drift;
+                const { min, max } = BOUNDS[k];
+                if (adjusted >= min && adjusted <= max) {
+                    result[k] = Math.round(adjusted * 10) / 10;
+                    break;
+                }
+            }
+        }
+
+        return result;
     },
 
     /**
