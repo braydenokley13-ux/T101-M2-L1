@@ -1,6 +1,6 @@
 /**
- * MLB Money Maker - Calculations Module
- * Satisfaction scoring algorithms and game calculations
+ * MLB Money Maker v2 - Calculations Module
+ * Satisfaction scoring algorithms, demand generation, and unlock boosts
  */
 
 const Calculations = {
@@ -45,7 +45,11 @@ const Calculations = {
         score += allocationScore * weights.allocation;
 
         // Minimum salary score (ideal: $1M+)
-        const minSalaryScore = this.mapRange(state.minSalary, 400, 1500, 30, 100);
+        // Apply unlock boost if active
+        const effectiveMinSalary = state.unlockedBoosts?.salaryBoost
+            ? state.minSalary + 100
+            : state.minSalary;
+        const minSalaryScore = this.mapRange(effectiveMinSalary, 400, 1500, 30, 100);
         score += minSalaryScore * weights.minSalary;
 
         // Salary share score (ideal: 50%+)
@@ -56,7 +60,9 @@ const Calculations = {
         const balanceScore = this.mapRange(state.revenueShare, 10, 60, 40, 100);
         score += balanceScore * weights.competitiveBalance;
 
-        return Math.min(100, Math.max(0, Math.round(score)));
+        // Apply demand bonus/penalty
+        const demandAdj = this.getDemandAdjustment('players', state);
+        return Math.min(100, Math.max(0, Math.round(score + demandAdj)));
     },
 
     /**
@@ -80,11 +86,16 @@ const Calculations = {
         score += streamingScore * weights.streaming;
 
         // Revenue sharing (inverse - less sharing = more profit for big markets)
-        // But some sharing helps league stability
-        const revenueScore = this.bellCurve(state.revenueShare, 30, 20);
+        // Apply market flexibility unlock: if unlocked, owner penalty for high rev share is reduced
+        const effectiveRevenueShare = state.unlockedBoosts?.marketFlexibility
+            ? Math.min(state.revenueShare, 50)  // cap the penalty at 50%
+            : state.revenueShare;
+        const revenueScore = this.bellCurve(effectiveRevenueShare, 30, 20);
         score += revenueScore * weights.revenueShare;
 
-        return Math.min(100, Math.max(0, Math.round(score)));
+        // Apply demand bonus/penalty
+        const demandAdj = this.getDemandAdjustment('owners', state);
+        return Math.min(100, Math.max(0, Math.round(score + demandAdj)));
     },
 
     /**
@@ -111,7 +122,14 @@ const Calculations = {
         const viewershipScore = this.mapRange(state.revenueShare, 10, 50, 50, 90);
         score += viewershipScore * weights.viewership;
 
-        return Math.min(100, Math.max(0, Math.round(score)));
+        // Prime time guarantee unlock adds a flat bonus
+        if (state.unlockedBoosts?.primeTimeGuarantee) {
+            score += 8;
+        }
+
+        // Apply demand bonus/penalty
+        const demandAdj = this.getDemandAdjustment('networks', state);
+        return Math.min(100, Math.max(0, Math.round(score + demandAdj)));
     },
 
     /**
@@ -137,7 +155,9 @@ const Calculations = {
         const minSalaryScore = this.mapRange(state.minSalary, 400, 1200, 50, 100);
         score += minSalaryScore * weights.minSalary;
 
-        return Math.min(100, Math.max(0, Math.round(score)));
+        // Apply demand bonus/penalty
+        const demandAdj = this.getDemandAdjustment('fans', state);
+        return Math.min(100, Math.max(0, Math.round(score + demandAdj)));
     },
 
     /**
@@ -245,11 +265,11 @@ const Calculations = {
      * Get emoji based on satisfaction level
      */
     getEmoji(satisfaction) {
-        if (satisfaction >= 80) return '😄'; // Very happy
-        if (satisfaction >= 65) return '😊'; // Happy
-        if (satisfaction >= 50) return '😐'; // Neutral
-        if (satisfaction >= 40) return '😟'; // Unhappy
-        return '😠'; // Very unhappy
+        if (satisfaction >= 80) return '😄';
+        if (satisfaction >= 65) return '😊';
+        if (satisfaction >= 50) return '😐';
+        if (satisfaction >= 40) return '😟';
+        return '😠';
     },
 
     /**
@@ -284,6 +304,77 @@ const Calculations = {
         return time ? time.impact : '';
     },
 
+    // ===== V2: DEMAND SYSTEM =====
+
+    /**
+     * Generate a demand for the given stakeholder based on current state.
+     * Returns the first applicable demand template, or null if none.
+     */
+    generateDemand(stakeholder, state) {
+        const templates = MLBData.demandTemplates[stakeholder];
+        if (!templates) return null;
+
+        // Find first condition that is currently true (demand not yet met)
+        for (const template of templates) {
+            if (template.condition(state) && !template.check(state)) {
+                return {
+                    stakeholder,
+                    name: MLBData.stakeholders[stakeholder].name,
+                    demand: template.demand,
+                    fix: template.fix,
+                    check: template.check,
+                    bonusIfMet: 8,
+                    penaltyIfIgnored: 5
+                };
+            }
+        }
+        return null;
+    },
+
+    /**
+     * Get active demand adjustments from state.pendingDemands
+     * Returns the total satisfaction adjustment for a stakeholder
+     */
+    getDemandAdjustment(stakeholder, state) {
+        if (!state.demandOutcomes) return 0;
+        return state.demandOutcomes[stakeholder] || 0;
+    },
+
+    /**
+     * Evaluate all pending demands and compute outcomes
+     * Call this when locking in a round.
+     * Returns an object: { stakeholder: adjustment, ... }
+     */
+    evaluateDemandOutcomes(demands, state) {
+        const outcomes = {};
+        demands.forEach(demand => {
+            if (!demand) return;
+            const met = demand.check(state);
+            outcomes[demand.stakeholder] = met ? demand.bonusIfMet : -demand.penaltyIfIgnored;
+        });
+        return outcomes;
+    },
+
+    // ===== MINI-GAME BONUS =====
+
+    /**
+     * Calculate basic mini-game bonus (legacy, kept for reference)
+     */
+    calculateMiniGameBonus(correct, total) {
+        const percentage = correct / total;
+        if (percentage >= 0.8) return 5;
+        if (percentage >= 0.6) return 3;
+        if (percentage >= 0.4) return 1;
+        return 0;
+    },
+
+    /**
+     * Determine if mini-game was completed at 80%+ threshold
+     */
+    isHighScore(correct, total) {
+        return (correct / total) >= 0.8;
+    },
+
     // ===== UTILITY FUNCTIONS =====
 
     /**
@@ -301,17 +392,6 @@ const Calculations = {
     bellCurve(value, optimal, spread) {
         const diff = value - optimal;
         return Math.exp(-(diff * diff) / (2 * spread * spread));
-    },
-
-    /**
-     * Calculate mini-game bonus
-     */
-    calculateMiniGameBonus(correct, total) {
-        const percentage = correct / total;
-        if (percentage >= 0.8) return 5;
-        if (percentage >= 0.6) return 3;
-        if (percentage >= 0.4) return 1;
-        return 0;
     },
 
     /**

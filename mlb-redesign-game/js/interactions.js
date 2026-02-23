@@ -1,6 +1,6 @@
 /**
- * MLB Money Maker - Interactions Module
- * Handles drag-drop, sliders, and mini-games
+ * MLB Money Maker v2 - Interactions Module
+ * Handles sliders, mini-games with targeted unlocks, and drag-drop
  */
 
 const Interactions = {
@@ -34,6 +34,13 @@ const Interactions = {
      * Handle allocation slider changes
      */
     handleAllocationSlider(e) {
+        // Take snapshot before first change for undo
+        if (!Game.state.previousSnapshot && Game.state.undosUsed === 0) {
+            Game.takeSnapshot();
+            const undoBtn = document.getElementById('undo-btn');
+            if (undoBtn) undoBtn.disabled = false;
+        }
+
         const slider = e.target;
         const stakeholder = slider.id.replace('-slider', '');
         const value = parseFloat(slider.value);
@@ -74,6 +81,13 @@ const Interactions = {
      * Handle detail slider changes
      */
     handleDetailSlider(e) {
+        // Take snapshot before first change for undo
+        if (!Game.state.previousSnapshot && Game.state.undosUsed === 0) {
+            Game.takeSnapshot();
+            const undoBtn = document.getElementById('undo-btn');
+            if (undoBtn) undoBtn.disabled = false;
+        }
+
         const slider = e.target;
         const id = slider.id;
         const value = parseFloat(slider.value);
@@ -139,11 +153,16 @@ const Interactions = {
             });
         });
 
-        // Done buttons
-        ['salary-match', 'network-click', 'stadium-puzzle', 'cap-calculator'].forEach(game => {
-            const doneBtn = document.getElementById(`${game}-done`);
-            if (doneBtn) {
-                doneBtn.addEventListener('click', () => this.completeMiniGame());
+        // Done buttons — each passes back the game type
+        [
+            { id: 'salary-match-done', game: 'salary-match' },
+            { id: 'network-click-done', game: 'network-click' },
+            { id: 'stadium-puzzle-done', game: 'stadium-puzzle' },
+            { id: 'cap-calculator-done', game: 'cap-calculator' }
+        ].forEach(({ id, game }) => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                btn.addEventListener('click', () => this.completeMiniGame(game));
             }
         });
     },
@@ -155,15 +174,11 @@ const Interactions = {
         const modal = document.getElementById('mini-game-modal');
         const selectSection = document.getElementById('mini-game-select');
 
-        // Hide all game sections
         document.querySelectorAll('.mini-game-section').forEach(s => {
             s.style.display = 'none';
         });
 
-        // Show select section
         selectSection.style.display = 'block';
-
-        // Show modal
         modal.classList.add('active');
     },
 
@@ -174,12 +189,10 @@ const Interactions = {
         const modal = document.getElementById('mini-game-modal');
         modal.classList.remove('active');
 
-        // Clear any running timer
         if (this.miniGameState.timer) {
             clearInterval(this.miniGameState.timer);
         }
 
-        // Reset state
         this.miniGameState = {
             active: null,
             timer: null,
@@ -193,16 +206,13 @@ const Interactions = {
      * Start a specific mini-game
      */
     startMiniGame(gameType) {
-        // Hide select section
         document.getElementById('mini-game-select').style.display = 'none';
 
-        // Show specific game section
         const gameSection = document.getElementById(`${gameType}-game`);
         if (gameSection) {
             gameSection.style.display = 'block';
         }
 
-        // Initialize the game
         this.miniGameState.active = gameType;
 
         switch (gameType) {
@@ -222,18 +232,14 @@ const Interactions = {
     },
 
     /**
-     * Complete mini-game and apply bonus
+     * Complete mini-game and apply targeted bonus
      */
-    completeMiniGame() {
-        const bonus = Calculations.calculateMiniGameBonus(
-            this.miniGameState.score,
-            this.miniGameState.data?.total || 5
-        );
+    completeMiniGame(gameType) {
+        const correct = this.miniGameState.score;
+        const total = this.miniGameState.data?.total || 5;
 
-        if (bonus > 0) {
-            // Apply bonus to all satisfactions
-            Game.applyMiniGameBonus(bonus);
-        }
+        // Apply targeted bonus based on game type
+        Game.applyMiniGameBonus(gameType, correct, total);
 
         this.closeMiniGame();
     },
@@ -245,7 +251,6 @@ const Interactions = {
         const result = document.getElementById('salary-match-result');
         result.style.display = 'none';
 
-        // Get random players
         const players = getRandomPlayers(8);
         this.miniGameState.data = {
             players: players,
@@ -255,15 +260,12 @@ const Interactions = {
         };
         this.miniGameState.score = 0;
 
-        // Clear existing cards
         playerCards.innerHTML = '';
 
-        // Clear dropzones
         ['superstar', 'allstar', 'midtier', 'minimum'].forEach(tier => {
             document.getElementById(`tier-${tier}`).innerHTML = '';
         });
 
-        // Create player cards
         players.forEach((player, index) => {
             const card = document.createElement('div');
             card.className = 'player-card-mini';
@@ -277,23 +279,19 @@ const Interactions = {
                 <div class="player-team">${MLBData.teams[player.team]?.abbr || ''}</div>
             `;
 
-            // Drag events
             card.addEventListener('dragstart', (e) => this.handleDragStart(e, 'salary'));
             card.addEventListener('dragend', (e) => this.handleDragEnd(e));
 
             playerCards.appendChild(card);
         });
 
-        // Set up drop zones
         document.querySelectorAll('.salary-tier').forEach(tier => {
             const dropzone = tier.querySelector('.tier-dropzone');
-
             dropzone.addEventListener('dragover', (e) => this.handleDragOver(e));
             dropzone.addEventListener('dragleave', (e) => this.handleDragLeave(e));
             dropzone.addEventListener('drop', (e) => this.handleSalaryDrop(e, tier.dataset.tier));
         });
 
-        // Start timer
         this.startTimer(30, 'salary-match-timer');
     },
 
@@ -303,20 +301,17 @@ const Interactions = {
 
         const cardIndex = e.dataTransfer.getData('text/plain');
         const card = document.querySelector(`.player-card-mini[data-index="${cardIndex}"]`);
-
         if (!card) return;
 
         const actualTier = card.dataset.tier;
         const dropzone = e.currentTarget;
 
-        // Move card to dropzone
         dropzone.appendChild(card);
         card.draggable = false;
 
-        // Check if correct
         const isCorrect = actualTier === targetTier;
-        card.style.borderColor = isCorrect ? '#28A745' : '#DC3545';
-        card.style.opacity = '0.8';
+        card.style.borderColor = isCorrect ? '#22c55e' : '#ef4444';
+        card.style.opacity = '0.85';
 
         this.miniGameState.data.placed++;
         if (isCorrect) {
@@ -324,23 +319,22 @@ const Interactions = {
             this.miniGameState.score++;
         }
 
-        // Check if game complete
         if (this.miniGameState.data.placed >= this.miniGameState.data.total) {
             this.finishSalaryMatchGame();
         }
     },
 
     finishSalaryMatchGame() {
-        if (this.miniGameState.timer) {
-            clearInterval(this.miniGameState.timer);
-        }
+        if (this.miniGameState.timer) clearInterval(this.miniGameState.timer);
 
         const result = document.getElementById('salary-match-result');
         const resultText = result.querySelector('.result-text');
         const correct = this.miniGameState.data.correct;
         const total = this.miniGameState.data.total;
+        const isHigh = correct / total >= 0.8;
 
-        resultText.textContent = `You got ${correct}/${total} correct!`;
+        resultText.innerHTML = `You got ${correct}/${total} correct!` +
+            (isHigh ? ' <strong>UNLOCK EARNED: Salary Boost</strong>' : '');
         resultText.className = correct >= total * 0.6 ? 'result-text success' : 'result-text partial';
         result.style.display = 'block';
     },
@@ -353,7 +347,6 @@ const Interactions = {
         const result = document.getElementById('network-click-result');
         result.style.display = 'none';
 
-        // Generate random sequence
         const networks = MLBData.networks.map(n => n.id);
         const sequence = [];
         for (let i = 0; i < 5; i++) {
@@ -368,25 +361,19 @@ const Interactions = {
         };
         this.miniGameState.score = 0;
 
-        // Display sequence
         sequenceDiv.innerHTML = sequence.map((network, i) => {
             const name = MLBData.networks.find(n => n.id === network)?.logo || network;
             return `<span class="network-item" data-index="${i}">${name}</span>`;
         }).join('');
 
-        // Highlight first
         sequenceDiv.querySelector('[data-index="0"]').classList.add('active');
-
-        // Update progress
         document.getElementById('click-progress-text').textContent = '0 / 5';
 
-        // Reset button states
         buttonsDiv.querySelectorAll('.network-btn').forEach(btn => {
             btn.classList.remove('correct', 'wrong');
             btn.onclick = (e) => this.handleNetworkClick(e.target.dataset.network);
         });
 
-        // Start timer
         this.startTimer(20, 'network-click-timer');
     },
 
@@ -397,7 +384,6 @@ const Interactions = {
         const sequenceItem = document.querySelector(`.network-item[data-index="${data.currentIndex}"]`);
 
         if (clickedNetwork === expected) {
-            // Correct!
             btn.classList.add('correct');
             setTimeout(() => btn.classList.remove('correct'), 300);
 
@@ -408,11 +394,9 @@ const Interactions = {
             data.currentIndex++;
             this.miniGameState.score = data.correct;
 
-            // Update progress
             document.getElementById('click-progress-text').textContent =
                 `${data.currentIndex} / 5`;
 
-            // Highlight next or finish
             if (data.currentIndex < 5) {
                 const nextItem = document.querySelector(`.network-item[data-index="${data.currentIndex}"]`);
                 if (nextItem) nextItem.classList.add('active');
@@ -420,22 +404,21 @@ const Interactions = {
                 this.finishNetworkClickGame();
             }
         } else {
-            // Wrong!
             btn.classList.add('wrong');
             setTimeout(() => btn.classList.remove('wrong'), 300);
         }
     },
 
     finishNetworkClickGame() {
-        if (this.miniGameState.timer) {
-            clearInterval(this.miniGameState.timer);
-        }
+        if (this.miniGameState.timer) clearInterval(this.miniGameState.timer);
 
         const result = document.getElementById('network-click-result');
         const resultText = result.querySelector('.result-text');
         const correct = this.miniGameState.data.correct;
+        const isHigh = correct / 5 >= 0.8;
 
-        resultText.textContent = `You completed ${correct}/5 in order!`;
+        resultText.innerHTML = `You completed ${correct}/5 in order!` +
+            (isHigh ? ' <strong>UNLOCK EARNED: Prime Time Guarantee</strong>' : '');
         resultText.className = correct >= 4 ? 'result-text success' : 'result-text partial';
         result.style.display = 'block';
     },
@@ -447,7 +430,6 @@ const Interactions = {
         const result = document.getElementById('stadium-puzzle-result');
         result.style.display = 'none';
 
-        // Get 6 random teams (2 from each market size)
         const smallTeams = MLBData.teamsByMarket.small.slice().sort(() => Math.random() - 0.5).slice(0, 2);
         const mediumTeams = MLBData.teamsByMarket.medium.slice().sort(() => Math.random() - 0.5).slice(0, 2);
         const largeTeams = MLBData.teamsByMarket.large.slice().sort(() => Math.random() - 0.5).slice(0, 2);
@@ -458,7 +440,7 @@ const Interactions = {
         this.miniGameState.data = {
             teams: allTeams.map(key => ({
                 key,
-                market: MLBData.teams[key] ? this.getTeamMarket(key) : 'medium'
+                market: this.getTeamMarket(key)
             })),
             placed: 0,
             correct: 0,
@@ -466,13 +448,11 @@ const Interactions = {
         };
         this.miniGameState.score = 0;
 
-        // Clear existing
         teamsDiv.innerHTML = '';
         ['small', 'medium', 'large'].forEach(market => {
             document.getElementById(`${market}-market-zone`).innerHTML = '';
         });
 
-        // Create team chips
         allTeams.forEach((teamKey, index) => {
             const team = MLBData.teams[teamKey];
             if (!team) return;
@@ -491,16 +471,13 @@ const Interactions = {
             teamsDiv.appendChild(chip);
         });
 
-        // Set up drop zones
         document.querySelectorAll('.market-bucket').forEach(bucket => {
             const dropzone = bucket.querySelector('.bucket-dropzone');
-
             dropzone.addEventListener('dragover', (e) => this.handleDragOver(e));
             dropzone.addEventListener('dragleave', (e) => this.handleDragLeave(e));
             dropzone.addEventListener('drop', (e) => this.handleStadiumDrop(e, bucket.dataset.market));
         });
 
-        // Start timer
         this.startTimer(30, 'stadium-timer');
     },
 
@@ -516,19 +493,16 @@ const Interactions = {
 
         const chipIndex = e.dataTransfer.getData('text/plain');
         const chip = document.querySelector(`.team-chip[data-index="${chipIndex}"]`);
-
         if (!chip) return;
 
         const actualMarket = chip.dataset.market;
         const dropzone = e.currentTarget;
 
-        // Move chip to dropzone
         dropzone.appendChild(chip);
         chip.draggable = false;
 
-        // Check if correct
         const isCorrect = actualMarket === targetMarket;
-        chip.style.backgroundColor = isCorrect ? '#28A745' : '#DC3545';
+        chip.style.backgroundColor = isCorrect ? '#22c55e' : '#ef4444';
         chip.style.color = 'white';
 
         this.miniGameState.data.placed++;
@@ -537,23 +511,22 @@ const Interactions = {
             this.miniGameState.score++;
         }
 
-        // Check if game complete
         if (this.miniGameState.data.placed >= this.miniGameState.data.total) {
             this.finishStadiumPuzzleGame();
         }
     },
 
     finishStadiumPuzzleGame() {
-        if (this.miniGameState.timer) {
-            clearInterval(this.miniGameState.timer);
-        }
+        if (this.miniGameState.timer) clearInterval(this.miniGameState.timer);
 
         const result = document.getElementById('stadium-puzzle-result');
         const resultText = result.querySelector('.result-text');
         const correct = this.miniGameState.data.correct;
         const total = this.miniGameState.data.total;
+        const isHigh = correct / total >= 0.8;
 
-        resultText.textContent = `You categorized ${correct}/${total} teams correctly!`;
+        resultText.innerHTML = `You categorized ${correct}/${total} teams correctly!` +
+            (isHigh ? ' <strong>UNLOCK EARNED: Market Flexibility</strong>' : '');
         resultText.className = correct >= total * 0.6 ? 'result-text success' : 'result-text partial';
         result.style.display = 'block';
     },
@@ -565,13 +538,11 @@ const Interactions = {
         const result = document.getElementById('cap-calculator-result');
         result.style.display = 'none';
 
-        // Generate 3 problems
         const problems = [];
         for (let i = 0; i < 3; i++) {
             const revenue = (Math.floor(Math.random() * 5) + 6) * 100; // 600-1000M
-            const playerShare = 50; // Always 50% for simplicity
+            const playerShare = 50;
             const answer = Math.round((revenue * (playerShare / 100)) / 30);
-
             problems.push({ revenue, playerShare, answer, answered: false });
         }
 
@@ -583,7 +554,6 @@ const Interactions = {
         };
         this.miniGameState.score = 0;
 
-        // Display problems
         problemsDiv.innerHTML = problems.map((p, i) => `
             <div class="calc-problem" data-index="${i}">
                 <p class="calc-question">
@@ -601,32 +571,26 @@ const Interactions = {
             </div>
         `).join('');
 
-        // Add event listeners
         problemsDiv.querySelectorAll('.calc-submit').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index);
-                this.checkCalculatorAnswer(index);
+                this.checkCalculatorAnswer(parseInt(e.target.dataset.index));
             });
         });
 
-        // Allow enter key
         problemsDiv.querySelectorAll('.calc-input').forEach(input => {
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    const index = parseInt(e.target.dataset.index);
-                    this.checkCalculatorAnswer(index);
+                    this.checkCalculatorAnswer(parseInt(e.target.dataset.index));
                 }
             });
         });
 
-        // Update score display
         document.getElementById('calc-score').textContent = '0 / 3 Correct';
     },
 
     checkCalculatorAnswer(index) {
         const data = this.miniGameState.data;
         const problem = data.problems[index];
-
         if (problem.answered) return;
 
         const input = document.querySelector(`.calc-input[data-index="${index}"]`);
@@ -636,7 +600,6 @@ const Interactions = {
         problem.answered = true;
         input.disabled = true;
 
-        // Check if within 1M of correct answer (allowing for rounding)
         const isCorrect = Math.abs(userAnswer - problem.answer) <= 1;
 
         if (isCorrect) {
@@ -649,11 +612,9 @@ const Interactions = {
             resultDiv.className = 'calc-result incorrect';
         }
 
-        // Update score
         document.getElementById('calc-score').textContent =
             `${data.correct} / 3 Correct`;
 
-        // Check if all answered
         if (data.problems.every(p => p.answered)) {
             this.finishCapCalculatorGame();
         }
@@ -663,8 +624,10 @@ const Interactions = {
         const result = document.getElementById('cap-calculator-result');
         const resultText = result.querySelector('.result-text');
         const correct = this.miniGameState.data.correct;
+        const isHigh = correct >= 3;
 
-        resultText.textContent = `You got ${correct}/3 calculations correct!`;
+        resultText.innerHTML = `You got ${correct}/3 calculations correct!` +
+            (isHigh ? ' <strong>UNLOCK EARNED: League Credibility +5</strong>' : '');
         resultText.className = correct >= 2 ? 'result-text success' : 'result-text partial';
         result.style.display = 'block';
     },
@@ -716,7 +679,6 @@ const Interactions = {
     },
 
     handleTimeUp() {
-        // Finish the current game based on type
         switch (this.miniGameState.active) {
             case 'salary-match':
                 this.finishSalaryMatchGame();

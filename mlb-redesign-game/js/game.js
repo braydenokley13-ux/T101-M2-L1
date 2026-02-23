@@ -1,6 +1,6 @@
 /**
- * MLB Money Maker - Main Game Module
- * Core state management and game logic
+ * MLB Money Maker v2 - Main Game Module
+ * Core state management, negotiation rounds, undo, and demand system
  */
 
 const Game = {
@@ -38,8 +38,30 @@ const Game = {
         // Stability status
         stability: 'stable',
 
-        // Mini-game bonus accumulated
-        miniGameBonus: 0,
+        // === V2: ROUNDS SYSTEM ===
+        round: 1,            // Current round (1, 2, 3)
+        roundLocked: false,  // Whether current round has been locked in
+        roundSatisfactions: [], // Snapshots of satisfactions per round
+
+        // === V2: UNDO SYSTEM ===
+        previousSnapshot: null,
+        undosUsed: 0,        // Per-round undo counter (max 1 per round)
+
+        // === V2: DEMAND SYSTEM ===
+        pendingDemands: [],      // Active demands shown this round
+        demandOutcomes: {},      // Adjustment map: { stakeholder: +/-N }
+        demandFulfilled: {},     // Track which stakeholders' demands were met
+
+        // === V2: UNLOCK BOOSTS ===
+        unlockedBoosts: {
+            salaryBoost: false,        // From Salary Match game
+            primeTimeGuarantee: false, // From Network Click game
+            marketFlexibility: false,  // From Stadium Puzzle game
+            leagueCredibility: 0       // From Cap Calculator (+5 added to final overall)
+        },
+
+        // === V2: KEY DECISIONS ===
+        keyDecisions: [],    // Array of decision strings for results screen
 
         // Game progress (0-100)
         progress: 0,
@@ -52,8 +74,6 @@ const Game = {
      * Initialize the game
      */
     init() {
-        console.log('MLB Money Maker - Initializing...');
-
         // Initialize UI components
         UI.init();
 
@@ -71,8 +91,6 @@ const Game = {
         setTimeout(() => {
             UI.hideLoading();
         }, 1000);
-
-        console.log('MLB Money Maker - Ready!');
     },
 
     /**
@@ -91,10 +109,16 @@ const Game = {
             continueBtn.addEventListener('click', () => this.showGameScreen());
         }
 
-        // Finalize deal button
-        const finalizeBtn = document.getElementById('finalize-deal-btn');
-        if (finalizeBtn) {
-            finalizeBtn.addEventListener('click', () => this.finalizeDeal());
+        // Lock round / Finalize button
+        const lockBtn = document.getElementById('lock-round-btn');
+        if (lockBtn) {
+            lockBtn.addEventListener('click', () => this.handleRoundButton());
+        }
+
+        // Undo button
+        const undoBtn = document.getElementById('undo-btn');
+        if (undoBtn) {
+            undoBtn.addEventListener('click', () => this.undoLastMove());
         }
 
         // Try again button
@@ -107,6 +131,23 @@ const Game = {
         const shareBtn = document.getElementById('share-results-btn');
         if (shareBtn) {
             shareBtn.addEventListener('click', () => this.shareResults());
+        }
+
+        // Collapse modal buttons
+        const recoverBtn = document.getElementById('recover-btn');
+        if (recoverBtn) {
+            recoverBtn.addEventListener('click', () => this.recoverFromCollapse());
+        }
+
+        const acceptCollapseBtn = document.getElementById('accept-collapse-btn');
+        if (acceptCollapseBtn) {
+            acceptCollapseBtn.addEventListener('click', () => this.finalizeDeal(true));
+        }
+
+        // Demand modal buttons
+        const demandAckBtn = document.getElementById('demand-acknowledge-btn');
+        if (demandAckBtn) {
+            demandAckBtn.addEventListener('click', () => UI.closeDemandModal());
         }
     },
 
@@ -124,16 +165,151 @@ const Game = {
     showGameScreen() {
         UI.showScreen('game-screen');
         this.state.currentScreen = 'game';
-
-        // Start progress tracking
+        UI.updateRoundIndicator(this.state.round);
+        UI.updateRoundButton(this.state.round);
+        // Round 1: only allocation tab is active, details locked
+        UI.setDetailsTabLocked(this.state.round < 2);
         this.startProgressTracking();
+    },
+
+    /**
+     * Handle round lock / finalize button
+     */
+    handleRoundButton() {
+        if (this.state.round < 3) {
+            this.lockRound();
+        } else {
+            this.finalizeDeal(false);
+        }
+    },
+
+    /**
+     * Lock in the current round and advance
+     */
+    lockRound() {
+        // Snapshot satisfactions for this round
+        const snapshot = { ...this.state.satisfactions };
+        this.state.roundSatisfactions.push(snapshot);
+
+        // Record key decision for this round
+        this.recordKeyDecisions();
+
+        // Evaluate any pending demands
+        if (this.state.pendingDemands.length > 0) {
+            const outcomes = Calculations.evaluateDemandOutcomes(
+                this.state.pendingDemands, this.state
+            );
+            // Accumulate outcomes
+            Object.keys(outcomes).forEach(k => {
+                this.state.demandOutcomes[k] = (this.state.demandOutcomes[k] || 0) + outcomes[k];
+            });
+            this.state.pendingDemands = [];
+        }
+
+        // Advance to next round
+        this.state.round++;
+        this.state.roundLocked = false;
+        this.state.undosUsed = 0;
+        this.state.previousSnapshot = null;
+
+        // Update UI for new round
+        UI.updateRoundIndicator(this.state.round);
+        UI.updateRoundButton(this.state.round);
+
+        // Unlock details tab in round 2+
+        UI.setDetailsTabLocked(false);
+
+        // Recalculate with demand outcomes applied
+        this.updateSatisfactions();
+
+        // Generate demand for the least-satisfied stakeholder in round 2+
+        if (this.state.round <= 3) {
+            this.generateAndShowDemand();
+        }
+
+        // Show round transition
+        UI.showRoundTransition(this.state.round);
+        UI.showToast(`Round ${this.state.round - 1} locked! Moving to Round ${this.state.round}`, 'success');
+    },
+
+    /**
+     * Generate a demand from the least-satisfied stakeholder and show it
+     */
+    generateAndShowDemand() {
+        const sats = this.state.satisfactions;
+        // Find lowest
+        let lowestKey = 'fans';
+        let lowestVal = 100;
+        Object.entries(sats).forEach(([k, v]) => {
+            if (v < lowestVal) { lowestVal = v; lowestKey = k; }
+        });
+
+        const demand = Calculations.generateDemand(lowestKey, this.state);
+        if (demand) {
+            this.state.pendingDemands = [demand];
+            UI.showDemandModal(demand);
+        }
+    },
+
+    /**
+     * Record notable decisions for the results screen
+     */
+    recordKeyDecisions() {
+        const s = this.state;
+        const decisions = [];
+
+        // Check streaming
+        if (s.streaming > 60) {
+            decisions.push(`Set streaming to ${s.streaming}% — this hurt fan and network satisfaction`);
+        } else if (s.streaming < 10) {
+            decisions.push(`Set streaming to only ${s.streaming}% — missed revenue opportunity`);
+        } else if (s.streaming >= 20 && s.streaming <= 40) {
+            decisions.push(`Streaming at ${s.streaming}% was a balanced choice that helped networks`);
+        }
+
+        // Check start time
+        if (s.startTime >= 4) {
+            decisions.push(`Late game times (9 PM+) cost fans and network viewership`);
+        } else if (s.startTime <= 1) {
+            decisions.push(`Early start times (6-7 PM) limited prime TV revenue`);
+        } else if (s.startTime === 2) {
+            decisions.push(`7:30 PM start time balanced East and West Coast audiences`);
+        }
+
+        // Check revenue sharing
+        if (s.revenueShare < 20) {
+            decisions.push(`Low revenue sharing (${s.revenueShare}%) hurt small-market competitiveness`);
+        } else if (s.revenueShare > 50) {
+            decisions.push(`High revenue sharing (${s.revenueShare}%) cost owner satisfaction`);
+        }
+
+        // Check player allocation
+        const playerPct = Math.round((s.allocation.players / 8.0) * 100);
+        if (playerPct > 55) {
+            decisions.push(`Allocated ${playerPct}% to players — owners felt shortchanged`);
+        } else if (playerPct < 37) {
+            decisions.push(`Low player allocation (${playerPct}%) angered the Players Union`);
+        } else {
+            decisions.push(`Player allocation of ${playerPct}% was near the sweet spot`);
+        }
+
+        // Add unique decisions to the overall list (avoid duplicates)
+        decisions.forEach(d => {
+            if (!this.state.keyDecisions.includes(d)) {
+                this.state.keyDecisions.push(d);
+            }
+        });
+
+        // Keep only the 3 most recent/relevant
+        if (this.state.keyDecisions.length > 4) {
+            this.state.keyDecisions = this.state.keyDecisions.slice(-4);
+        }
     },
 
     /**
      * Track game progress based on interactions
      */
     startProgressTracking() {
-        // Listen for any slider changes
         const sliders = document.querySelectorAll('input[type="range"]');
         sliders.forEach(slider => {
             slider.addEventListener('change', () => {
@@ -144,13 +320,67 @@ const Game = {
     },
 
     /**
-     * Update game progress
+     * Update game progress based on rounds
      */
     updateProgress() {
-        // Progress based on interactions (max at 20 interactions)
-        const interactionProgress = Math.min(100, this.state.interactions * 5);
-        this.state.progress = interactionProgress;
+        const roundProgress = ((this.state.round - 1) / 3) * 100;
+        const interactionBonus = Math.min(30, this.state.interactions * 2);
+        this.state.progress = Math.min(100, roundProgress + interactionBonus);
         UI.updateProgress(this.state.progress);
+    },
+
+    /**
+     * Take a state snapshot for undo
+     */
+    takeSnapshot() {
+        this.state.previousSnapshot = {
+            allocation: { ...this.state.allocation },
+            minSalary: this.state.minSalary,
+            revenueShare: this.state.revenueShare,
+            startTime: this.state.startTime,
+            streaming: this.state.streaming,
+            salaryShare: this.state.salaryShare
+        };
+    },
+
+    /**
+     * Undo the last slider change (max 1 per round)
+     */
+    undoLastMove() {
+        if (!this.state.previousSnapshot) {
+            UI.showToast('Nothing to undo', 'info');
+            return;
+        }
+        if (this.state.undosUsed >= 1) {
+            UI.showToast('Only 1 undo per round allowed', 'warning');
+            return;
+        }
+
+        const snap = this.state.previousSnapshot;
+
+        // Restore state
+        this.state.allocation = { ...snap.allocation };
+        this.state.minSalary = snap.minSalary;
+        this.state.revenueShare = snap.revenueShare;
+        this.state.startTime = snap.startTime;
+        this.state.streaming = snap.streaming;
+        this.state.salaryShare = snap.salaryShare;
+
+        // Restore slider DOM values
+        UI.restoreSliders(snap);
+
+        // Clear snapshot
+        this.state.previousSnapshot = null;
+        this.state.undosUsed++;
+
+        // Update satisfactions
+        this.updateSatisfactions();
+
+        // Disable undo button
+        const undoBtn = document.getElementById('undo-btn');
+        if (undoBtn) undoBtn.disabled = true;
+
+        UI.showToast('Last move undone', 'info');
     },
 
     /**
@@ -161,53 +391,107 @@ const Game = {
         this.state.satisfactions = satisfactions;
 
         // Check stability
+        const prevStability = this.state.stability;
         this.state.stability = Calculations.checkStability(satisfactions);
+
+        // Trigger collapse drama if newly collapsed
+        if (this.state.stability === 'collapsed' && prevStability !== 'collapsed') {
+            UI.triggerCollapseWarning(Calculations.getLowestStakeholder(satisfactions));
+        }
 
         // Update UI
         UI.updateSatisfactions(satisfactions);
 
-        // Update charts
-        UI.updatePieChart();
-        UI.updateSankeyChart();
+        // Update news ticker
+        UI.updateNewsTicker(this.state, satisfactions);
+
+        // Update advisor tips
+        UI.updateAdvisorTips(this.state, satisfactions);
+
+        // Update round progress
+        this.updateProgress();
     },
 
     /**
-     * Apply mini-game bonus to satisfactions
+     * Apply targeted mini-game bonus based on game type
      */
-    applyMiniGameBonus(bonus) {
-        this.state.miniGameBonus += bonus;
+    applyMiniGameBonus(gameType, correct, total) {
+        const isHighScore = Calculations.isHighScore(correct, total);
 
-        // Apply bonus to all satisfactions (temporary boost)
-        Object.keys(this.state.satisfactions).forEach(key => {
-            this.state.satisfactions[key] = Math.min(100,
-                this.state.satisfactions[key] + bonus);
-        });
+        switch (gameType) {
+            case 'salary-match':
+                if (isHighScore) {
+                    this.state.unlockedBoosts.salaryBoost = true;
+                    UI.showToast('UNLOCK: Minimum Salary Boost activated! (+$100K effective salary floor)', 'success');
+                } else {
+                    // Partial score: small uniform boost
+                    const bonus = Calculations.calculateMiniGameBonus(correct, total);
+                    if (bonus > 0) UI.showToast(`+${bonus} player satisfaction bonus`, 'success');
+                }
+                break;
 
-        // Update UI
-        UI.updateSatisfactions(this.state.satisfactions);
-        UI.showToast(`+${bonus} satisfaction bonus earned!`, 'success');
+            case 'network-click':
+                if (isHighScore) {
+                    this.state.unlockedBoosts.primeTimeGuarantee = true;
+                    UI.showToast('UNLOCK: Prime Time Guarantee! Networks get +8 satisfaction flat', 'success');
+                } else {
+                    const bonus = Calculations.calculateMiniGameBonus(correct, total);
+                    if (bonus > 0) UI.showToast(`+${bonus} network satisfaction bonus`, 'success');
+                }
+                break;
+
+            case 'stadium-puzzle':
+                if (isHighScore) {
+                    this.state.unlockedBoosts.marketFlexibility = true;
+                    UI.showToast('UNLOCK: Market Flexibility! High revenue sharing no longer penalizes owners', 'success');
+                } else {
+                    const bonus = Calculations.calculateMiniGameBonus(correct, total);
+                    if (bonus > 0) UI.showToast(`+${bonus} owner/fan satisfaction bonus`, 'success');
+                }
+                break;
+
+            case 'cap-calculator':
+                if (correct >= 3) {
+                    this.state.unlockedBoosts.leagueCredibility = 5;
+                    UI.showToast('UNLOCK: League Credibility! +5 added to your final overall score', 'success');
+                } else {
+                    const bonus = Calculations.calculateMiniGameBonus(correct, total);
+                    if (bonus > 0) UI.showToast(`+${bonus} overall satisfaction bonus`, 'success');
+                }
+                break;
+        }
+
+        // Recalculate with new unlocks
+        this.updateSatisfactions();
     },
 
     /**
      * Finalize the deal and show results
      */
-    finalizeDeal() {
+    finalizeDeal(forced = false) {
+        // Close collapse modal if open
+        UI.closeCollapseModal();
+
+        // Record final decisions
+        this.recordKeyDecisions();
+
         // Calculate final satisfactions
         const satisfactions = Calculations.calculateAllSatisfactions(this.state);
 
-        // Apply any mini-game bonus
-        if (this.state.miniGameBonus > 0) {
-            Object.keys(satisfactions).forEach(key => {
-                satisfactions[key] = Math.min(100,
-                    satisfactions[key] + this.state.miniGameBonus);
+        // Apply league credibility boost to overall
+        let finalSatisfactions = { ...satisfactions };
+        if (this.state.unlockedBoosts.leagueCredibility > 0) {
+            const boost = this.state.unlockedBoosts.leagueCredibility;
+            Object.keys(finalSatisfactions).forEach(k => {
+                finalSatisfactions[k] = Math.min(100, finalSatisfactions[k] + boost);
             });
         }
 
         // Determine tier
-        const tierInfo = Calculations.determineTier(satisfactions);
+        const tierInfo = Calculations.determineTier(finalSatisfactions);
 
         // Generate result with claim code
-        const result = CodeGenerator.generateResult(tierInfo, this.state, satisfactions);
+        const result = CodeGenerator.generateResult(tierInfo, this.state, finalSatisfactions);
 
         // Store result
         CodeGenerator.storeResult(result);
@@ -216,9 +500,17 @@ const Game = {
         UI.stopHeartbeat();
 
         // Show results screen
-        UI.showResults(result, satisfactions, this.state);
+        UI.showResults(result, finalSatisfactions, this.state);
 
         this.state.currentScreen = 'results';
+    },
+
+    /**
+     * Recover from a collapse warning (go back to game)
+     */
+    recoverFromCollapse() {
+        UI.closeCollapseModal();
+        // Don't change state — let user fix it
     },
 
     /**
@@ -247,7 +539,21 @@ const Game = {
                 fans: 68
             },
             stability: 'stable',
-            miniGameBonus: 0,
+            round: 1,
+            roundLocked: false,
+            roundSatisfactions: [],
+            previousSnapshot: null,
+            undosUsed: 0,
+            pendingDemands: [],
+            demandOutcomes: {},
+            demandFulfilled: {},
+            unlockedBoosts: {
+                salaryBoost: false,
+                primeTimeGuarantee: false,
+                marketFlexibility: false,
+                leagueCredibility: 0
+            },
+            keyDecisions: [],
             progress: 0,
             interactions: 0
         };
@@ -257,6 +563,9 @@ const Game = {
 
         // Reinitialize UI
         UI.init();
+        UI.updateRoundIndicator(1);
+        UI.updateRoundButton(1);
+        UI.setDetailsTabLocked(true);
         this.updateSatisfactions();
 
         // Show intro screen
@@ -267,7 +576,6 @@ const Game = {
      * Reset all sliders to default values
      */
     resetSliders() {
-        // Allocation sliders
         const allocationDefaults = {
             'players-slider': 3.6,
             'owners-slider': 2.4,
@@ -282,7 +590,6 @@ const Game = {
             }
         });
 
-        // Detail sliders
         const detailDefaults = {
             'min-salary-slider': 750,
             'revenue-share-slider': 35,
@@ -311,10 +618,14 @@ const Game = {
         UI.updateCompetitiveBalance(35);
         UI.updateViewerSplit(25);
         UI.updateProgress(0);
+
+        // Reset undo button
+        const undoBtn = document.getElementById('undo-btn');
+        if (undoBtn) undoBtn.disabled = true;
     },
 
     /**
-     * Share results (copy to clipboard or show share options)
+     * Share results (copy to clipboard)
      */
     shareResults() {
         const code = document.getElementById('claim-code')?.textContent;
@@ -323,7 +634,6 @@ const Game = {
 
         const shareText = `I just completed MLB Money Maker with a ${tier.toUpperCase()} tier deal!\nClaim Code: ${code}\nCan you do better?`;
 
-        // Try to copy to clipboard
         if (navigator.clipboard) {
             navigator.clipboard.writeText(shareText).then(() => {
                 UI.showToast('Results copied to clipboard!', 'success');
@@ -331,7 +641,6 @@ const Game = {
                 UI.showToast('Could not copy to clipboard', 'error');
             });
         } else {
-            // Fallback - show alert
             alert(shareText);
         }
     },
@@ -341,14 +650,6 @@ const Game = {
      */
     getState() {
         return { ...this.state };
-    },
-
-    /**
-     * Set game state (for debugging/testing)
-     */
-    setState(newState) {
-        Object.assign(this.state, newState);
-        this.updateSatisfactions();
     }
 };
 
@@ -359,7 +660,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Also handle window load for any late-loading resources
 window.addEventListener('load', () => {
-    // Ensure loading screen is hidden
     setTimeout(() => {
         UI.hideLoading();
     }, 500);
