@@ -31,7 +31,9 @@ const Interactions = {
     },
 
     /**
-     * Handle allocation slider changes
+     * Handle allocation slider changes.
+     * Total is always locked to $8B — moving one slider redistributes
+     * the remainder proportionally among the other three.
      */
     handleAllocationSlider(e) {
         // Take snapshot before first change for undo
@@ -41,17 +43,52 @@ const Interactions = {
             if (undoBtn) undoBtn.disabled = false;
         }
 
+        const TOTAL = 8.0;
+        const bounds = {
+            players:  { min: 2.0, max: 5.0 },
+            owners:   { min: 1.0, max: 4.0 },
+            networks: { min: 0.5, max: 2.5 },
+            league:   { min: 0.3, max: 1.5 }
+        };
+
         const slider = e.target;
-        const stakeholder = slider.id.replace('-slider', '');
-        const value = parseFloat(slider.value);
+        const movedKey = slider.id.replace('-slider', '');
+        const rawValue = parseFloat(slider.value);
+
+        // Clamp the moved slider to its own bounds
+        const movedValue = Math.max(bounds[movedKey].min,
+                            Math.min(bounds[movedKey].max, rawValue));
+
+        // Distribute the remainder among the other three sliders
+        const otherKeys = Object.keys(bounds).filter(k => k !== movedKey);
+        const remainder = parseFloat((TOTAL - movedValue).toFixed(10));
+        const distributed = this._distributeRemaining(
+            otherKeys, bounds, remainder
+        );
+
+        // Compute actual moved value in case distribution hit a wall
+        const othersSum = otherKeys.reduce((s, k) => s + distributed[k], 0);
+        const finalMoved = parseFloat((TOTAL - othersSum).toFixed(1));
 
         // Update game state
-        Game.state.allocation[stakeholder] = value;
+        Game.state.allocation[movedKey] = finalMoved;
+        otherKeys.forEach(k => {
+            Game.state.allocation[k] = parseFloat(distributed[k].toFixed(1));
+        });
 
-        // Update UI
-        UI.updateAllocationDisplay(stakeholder, value);
+        // Sync DOM sliders
+        slider.value = finalMoved;
+        otherKeys.forEach(k => {
+            const el = document.getElementById(`${k}-slider`);
+            if (el) el.value = distributed[k].toFixed(1);
+        });
 
-        // Recalculate total and check validity
+        // Update displays for all four buckets
+        [movedKey, ...otherKeys].forEach(k => {
+            UI.updateAllocationDisplay(k, Game.state.allocation[k]);
+        });
+
+        // Total is always $8B — hide warning
         this.validateAllocation();
 
         // Update all satisfactions
@@ -59,7 +96,60 @@ const Interactions = {
     },
 
     /**
-     * Validate that allocations sum to $8B
+     * Proportionally distribute `target` dollars among `keys`,
+     * respecting each slider's min/max bounds.
+     * Uses iterative clamping: if a slider hits its bound it is fixed
+     * and the remaining amount is re-distributed among the free sliders.
+     */
+    _distributeRemaining(keys, bounds, target) {
+        const result = {};
+        // Seed with current game-state values so proportions feel natural
+        keys.forEach(k => { result[k] = Game.state.allocation[k]; });
+
+        let toDistribute = target;
+        let freeKeys = [...keys];
+
+        for (let iter = 0; iter < keys.length; iter++) {
+            const freeTotal = freeKeys.reduce((s, k) => s + result[k], 0);
+
+            // Proposed proportional share for each free slider
+            const proposed = {};
+            freeKeys.forEach(k => {
+                const ratio = freeTotal > 0
+                    ? result[k] / freeTotal
+                    : 1 / freeKeys.length;
+                proposed[k] = ratio * toDistribute;
+            });
+
+            // Clamp proposals and fix any that hit a bound
+            const newlyClamped = [];
+            freeKeys.forEach(k => {
+                if (proposed[k] < bounds[k].min) {
+                    result[k] = bounds[k].min;
+                    toDistribute -= bounds[k].min;
+                    newlyClamped.push(k);
+                } else if (proposed[k] > bounds[k].max) {
+                    result[k] = bounds[k].max;
+                    toDistribute -= bounds[k].max;
+                    newlyClamped.push(k);
+                }
+            });
+
+            if (newlyClamped.length === 0) {
+                // No clamping occurred — assign final proportional values
+                freeKeys.forEach(k => { result[k] = proposed[k]; });
+                break;
+            }
+
+            freeKeys = freeKeys.filter(k => !newlyClamped.includes(k));
+            if (freeKeys.length === 0) break;
+        }
+
+        return result;
+    },
+
+    /**
+     * Validate that allocations sum to $8B (should always be true now).
      */
     validateAllocation() {
         const total = Game.state.allocation.players +
