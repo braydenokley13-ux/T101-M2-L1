@@ -3,884 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOW Sports Capital Presents - MLB Money Maker</title>
+    <title>BOW Sports Capital Presents — Front Office: The Homestand</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Styles -->
+    <!-- Styles: reuse Bow design tokens + base components, then editorial case layer -->
     <link rel="stylesheet" href="mlb-redesign-game/css/style.css">
+    <link rel="stylesheet" href="mlb-redesign-game/css/front-office.css">
 </head>
 <body>
-    <!-- Main Game Container -->
     <div id="game-container">
 
-        <!-- ==================== ACT 1: INTRO SCREEN ==================== -->
-        <section id="intro-screen" class="screen active">
-            <div class="branding-header">
-                <div class="bow-logo">BOW SPORTS CAPITAL</div>
-                <div class="presents">PRESENTS</div>
-            </div>
+        <!-- ==================== 1. FRONT OFFICE BRIEFING ==================== -->
+        <section id="briefing" class="screen active">
+            <div class="case-wrap briefing-wrap">
+                <div class="branding-header masthead">
+                    <div class="bow-logo">BOW SPORTS CAPITAL</div>
+                    <div class="presents">FRONT OFFICE CASE FILE · TRACK 101</div>
+                </div>
 
-            <div class="title-container">
-                <h1 class="game-title">MLB MONEY MAKER</h1>
-                <h2 class="game-subtitle">The Ultimate League Negotiation Challenge</h2>
-                <p class="tagline">Negotiate an $8 billion media deal that shapes baseball for a generation</p>
-            </div>
-
-            <div class="stakeholder-preview">
-                <div class="stakeholder-card preview">
-                    <div class="stakeholder-avatar players-avatar">
-                        <span class="avatar-icon">&#9918;</span>
-                    </div>
-                    <span class="stakeholder-name">Players Union</span>
-                </div>
-                <div class="stakeholder-card preview">
-                    <div class="stakeholder-avatar owners-avatar">
-                        <span class="avatar-icon">&#127970;</span>
-                    </div>
-                    <span class="stakeholder-name">Team Owners</span>
-                </div>
-                <div class="stakeholder-card preview">
-                    <div class="stakeholder-avatar networks-avatar">
-                        <span class="avatar-icon">&#128250;</span>
-                    </div>
-                    <span class="stakeholder-name">Networks</span>
-                </div>
-                <div class="stakeholder-card preview">
-                    <div class="stakeholder-avatar fans-avatar">
-                        <span class="avatar-icon">&#127944;</span>
-                    </div>
-                    <span class="stakeholder-name">Fans</span>
-                </div>
-            </div>
-
-            <div class="intro-info">
-                <div class="info-card">
-                    <span class="info-icon">&#128176;</span>
-                    <span class="info-text">Deal Value: <strong>$8 Billion</strong></span>
-                </div>
-                <div class="info-card">
-                    <span class="info-icon">&#128197;</span>
-                    <span class="info-text">Contract: <strong>8 Years</strong></span>
-                </div>
-                <div class="info-card">
-                    <span class="info-icon">&#9878;</span>
-                    <span class="info-text">Goal: <strong>Keep Everyone Happy</strong></span>
-                </div>
-            </div>
-
-            <button id="start-game-btn" class="primary-btn pulse">
-                <span>BEGIN NEGOTIATION</span>
-            </button>
-
-            <div class="learning-note">
-                <p>Learn how billion-dollar media deals shape professional sports</p>
-            </div>
-        </section>
-
-        <!-- ==================== ROLE INTRO SCREEN ==================== -->
-        <section id="role-screen" class="screen">
-            <div class="role-header">
-                <div class="role-badge">YOUR ROLE</div>
-                <h1 class="role-title">MLB Executive</h1>
-                <p class="role-description">
-                    You've been appointed to negotiate MLB's new 8-year, $8 billion national media deal.
-                    The current deal expires in December 2028, and the future of baseball economics is in your hands.
+                <div class="case-kicker">THE ASSIGNMENT</div>
+                <h1 class="case-headline">You Run the Front Office</h1>
+                <p class="case-deck">
+                    The owner just handed you the keys. You're the new President of the
+                    <strong>Bow City Hoopers</strong>. There's one homestand left to fix a real problem —
+                    and everyone is watching how you handle it.
                 </p>
-            </div>
 
-            <div class="mission-briefing">
-                <h3>Your Mission</h3>
-                <ul class="mission-list">
-                    <li><span class="mission-icon">&#9989;</span> Allocate the $8 billion fairly among stakeholders</li>
-                    <li><span class="mission-icon">&#9989;</span> Balance player salaries with team profitability</li>
-                    <li><span class="mission-icon">&#9989;</span> Choose broadcast times and streaming options</li>
-                    <li><span class="mission-icon">&#9989;</span> Keep small-market teams competitive</li>
-                    <li><span class="mission-icon">&#9989;</span> Negotiate through 3 rounds without losing anyone</li>
+                <div class="briefing-card">
+                    <div class="briefing-label">The Problem, In Plain English</div>
+                    <p class="briefing-body">
+                        Attendance is down. Fans are complaining that games cost too much.
+                        Sponsors want more energy in the arena. Ownership wants a plan before the next homestand.
+                    </p>
+                    <p class="briefing-body muted">
+                        Your job isn't to make everyone happy. It's to make smart calls — and be able to
+                        <em>defend them</em> in the ownership meeting.
+                    </p>
+                </div>
+
+                <ul class="briefing-steps">
+                    <li><span class="step-num">1</span> Read the room</li>
+                    <li><span class="step-num">2</span> Check the numbers</li>
+                    <li><span class="step-num">3</span> Make three calls</li>
+                    <li><span class="step-num">4</span> Defend the plan</li>
                 </ul>
-            </div>
 
-            <div class="stakeholder-intro">
-                <h3>Meet the Stakeholders</h3>
-                <div class="stakeholder-grid">
-                    <div class="stakeholder-detail">
-                        <div class="stakeholder-avatar players-avatar large">
-                            <span class="avatar-icon">&#9918;</span>
-                        </div>
-                        <div class="stakeholder-info">
-                            <h4>Tony Clark - Players Union</h4>
-                            <p>Represents 1,200+ MLB players fighting for fair wages and working conditions.</p>
-                        </div>
-                    </div>
-                    <div class="stakeholder-detail">
-                        <div class="stakeholder-avatar owners-avatar large">
-                            <span class="avatar-icon">&#127970;</span>
-                        </div>
-                        <div class="stakeholder-info">
-                            <h4>Team Owners (30 Franchises)</h4>
-                            <p>From small-market teams to big spenders, they need profitable returns.</p>
-                        </div>
-                    </div>
-                    <div class="stakeholder-detail">
-                        <div class="stakeholder-avatar networks-avatar large">
-                            <span class="avatar-icon">&#128250;</span>
-                        </div>
-                        <div class="stakeholder-info">
-                            <h4>Network Executives</h4>
-                            <p>ESPN, Fox, Apple TV+, and Amazon want prime content at the right times.</p>
-                        </div>
-                    </div>
-                    <div class="stakeholder-detail">
-                        <div class="stakeholder-avatar fans-avatar large">
-                            <span class="avatar-icon">&#127944;</span>
-                        </div>
-                        <div class="stakeholder-info">
-                            <h4>Baseball Fans</h4>
-                            <p>Want competitive games at watchable times with their favorite teams.</p>
-                        </div>
-                    </div>
-                </div>
+                <button class="primary-btn pulse" data-goto="situation">ENTER THE FRONT OFFICE</button>
+                <p class="case-footnote">About a 60-minute case. There are no perfect answers — only tradeoffs.</p>
             </div>
-
-            <button id="continue-to-game-btn" class="primary-btn">
-                <span>START NEGOTIATING</span>
-            </button>
         </section>
 
-        <!-- ==================== ACT 2: MAIN GAME SCREEN (v2) ==================== -->
-        <section id="game-screen" class="screen">
+        <!-- ==================== 2. READ THE SITUATION ==================== -->
+        <section id="situation" class="screen">
+            <div class="case-wrap">
+                <header class="section-head">
+                    <div class="case-kicker">STEP 1 · CHECK THE NUMBERS</div>
+                    <h1 class="case-headline">Read the Situation</h1>
+                    <p class="case-deck">Five numbers tell you where the team stands today. Read them before you make a single call.</p>
+                </header>
 
-            <!-- Top Header: Stability | Round Indicator | Score -->
-            <header class="game-header-v2">
-                <div class="header-left">
-                    <div class="stability-pill" id="stability-pill">
-                        <span class="pulse-dot" id="stability-dot"></span>
-                        <span id="stability-status" class="stability-label">STABLE</span>
+                <div class="situation-board">
+                    <div class="fact-card">
+                        <div class="fact-top"><span class="fact-icon">🎟️</span><span class="fact-label">Attendance</span></div>
+                        <div class="fact-value">71% full</div>
+                        <p class="fact-note">About 7 of every 10 seats are filled. Last year it was closer to 9 of 10.</p>
+                    </div>
+                    <div class="fact-card">
+                        <div class="fact-top"><span class="fact-icon">💵</span><span class="fact-label">Ticket Price</span></div>
+                        <div class="fact-value">$38 avg</div>
+                        <p class="fact-note">For a family of four, a night out adds up fast. Some say it's too much.</p>
+                    </div>
+                    <div class="fact-card">
+                        <div class="fact-top"><span class="fact-icon">🙂</span><span class="fact-label">Fan Satisfaction</span></div>
+                        <div class="fact-value">6 / 10</div>
+                        <p class="fact-note">Fans like the team. They're just not loving the prices or the energy.</p>
+                    </div>
+                    <div class="fact-card">
+                        <div class="fact-top"><span class="fact-icon">📣</span><span class="fact-label">Sponsor Interest</span></div>
+                        <div class="fact-value">High</div>
+                        <p class="fact-note">Companies want their name in your arena. That's money — if you use it right.</p>
+                    </div>
+                    <div class="fact-card">
+                        <div class="fact-top"><span class="fact-icon">🏦</span><span class="fact-label">Budget Room</span></div>
+                        <div class="fact-value">Tight</div>
+                        <p class="fact-note">There's some money to spend. Not a lot. Spend it where it counts.</p>
                     </div>
                 </div>
 
-                <div class="header-center">
-                    <div class="round-indicator" id="round-indicator">
-                        <div class="round-step active" data-round="1">
-                            <span class="round-num">1</span>
-                            <span class="round-label">Money Split</span>
-                        </div>
-                        <div class="round-divider"></div>
-                        <div class="round-step" data-round="2">
-                            <span class="round-num">2</span>
-                            <span class="round-label">Deal Details</span>
-                        </div>
-                        <div class="round-divider"></div>
-                        <div class="round-step" data-round="3">
-                            <span class="round-num">3</span>
-                            <span class="round-label">Final Terms</span>
-                        </div>
-                    </div>
+                <div class="starting-meters">
+                    <div class="meters-label">Where you're starting</div>
+                    <div class="metric-rail" data-rail="situation"></div>
                 </div>
 
-                <div class="header-right">
-                    <div class="overall-score-pill">
-                        <span class="score-label">Score</span>
-                        <span class="score-value" id="overall-score">66%</span>
-                        <span class="score-tier" id="score-tier">Bronze</span>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Breaking News Ticker -->
-            <div class="news-ticker-bar">
-                <span class="ticker-badge">BREAKING</span>
-                <div class="ticker-track">
-                    <div class="ticker-content" id="news-ticker">
-                        MLB Media Deal Negotiations: Stakeholders gather in New York for final round of talks
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main 2-Column Game Area -->
-            <main class="game-main-v2">
-
-                <!-- LEFT: Stakeholder Hub (always visible) -->
-                <aside class="stakeholder-hub">
-                    <div class="hub-title">Stakeholders</div>
-
-                    <!-- Players Union -->
-                    <div class="stakeholder-card-v2" data-stakeholder="players" id="card-players">
-                        <div class="card-top">
-                            <div class="card-avatar players-avatar-v2">&#9918;</div>
-                            <div class="card-identity">
-                                <div class="card-name">Players Union</div>
-                                <div class="card-rep">Tony Clark · MLBPA</div>
-                            </div>
-                            <div class="card-face" id="players-face">😊</div>
-                            <div class="card-pct" id="players-sat-percent">70%</div>
-                        </div>
-                        <div class="card-bar-wrap">
-                            <div class="card-bar">
-                                <div class="card-bar-fill players-bar" id="players-satisfaction" style="width:70%"></div>
-                            </div>
-                        </div>
-                        <div class="card-comment" id="players-comment">"We can work with this, but we'd like more."</div>
-                    </div>
-
-                    <!-- Team Owners -->
-                    <div class="stakeholder-card-v2" data-stakeholder="owners" id="card-owners">
-                        <div class="card-top">
-                            <div class="card-avatar owners-avatar-v2">&#127970;</div>
-                            <div class="card-identity">
-                                <div class="card-name">Team Owners</div>
-                                <div class="card-rep">30 Franchises</div>
-                            </div>
-                            <div class="card-face" id="owners-face">😊</div>
-                            <div class="card-pct" id="owners-sat-percent">65%</div>
-                        </div>
-                        <div class="card-bar-wrap">
-                            <div class="card-bar">
-                                <div class="card-bar-fill owners-bar" id="owners-satisfaction" style="width:65%"></div>
-                            </div>
-                        </div>
-                        <div class="card-comment" id="owners-comment">"Margins are tight, but it could work."</div>
-                    </div>
-
-                    <!-- Broadcast Networks -->
-                    <div class="stakeholder-card-v2" data-stakeholder="networks" id="card-networks">
-                        <div class="card-top">
-                            <div class="card-avatar networks-avatar-v2">&#128250;</div>
-                            <div class="card-identity">
-                                <div class="card-name">Networks</div>
-                                <div class="card-rep">ESPN · FOX · Apple · Amazon</div>
-                            </div>
-                            <div class="card-face" id="networks-face">😊</div>
-                            <div class="card-pct" id="networks-sat-percent">60%</div>
-                        </div>
-                        <div class="card-bar-wrap">
-                            <div class="card-bar">
-                                <div class="card-bar-fill networks-bar" id="networks-satisfaction" style="width:60%"></div>
-                            </div>
-                        </div>
-                        <div class="card-comment" id="networks-comment">"We need better time slots for this price."</div>
-                    </div>
-
-                    <!-- Baseball Fans -->
-                    <div class="stakeholder-card-v2" data-stakeholder="fans" id="card-fans">
-                        <div class="card-top">
-                            <div class="card-avatar fans-avatar-v2">&#127944;</div>
-                            <div class="card-identity">
-                                <div class="card-name">Baseball Fans</div>
-                                <div class="card-rep">Millions of supporters</div>
-                            </div>
-                            <div class="card-face" id="fans-face">😊</div>
-                            <div class="card-pct" id="fans-sat-percent">68%</div>
-                        </div>
-                        <div class="card-bar-wrap">
-                            <div class="card-bar">
-                                <div class="card-bar-fill fans-bar" id="fans-satisfaction" style="width:68%"></div>
-                            </div>
-                        </div>
-                        <div class="card-comment" id="fans-comment">"Hope we can actually watch the games..."</div>
-                    </div>
-                </aside>
-
-                <!-- RIGHT: Tabbed Panels -->
-                <div class="game-tabs-container">
-                    <nav class="tab-nav">
-                        <button class="tab-btn active" data-tab="allocate">
-                            <span class="tab-icon">&#128176;</span>
-                            <span>Allocate $8B</span>
-                        </button>
-                        <button class="tab-btn" data-tab="details" id="details-tab-btn">
-                            <span class="tab-icon">&#9881;&#65039;</span>
-                            <span>Deal Details</span>
-                        </button>
-                        <button class="tab-btn" data-tab="advisor">
-                            <span class="tab-icon">&#128161;</span>
-                            <span>Advisor</span>
-                        </button>
-                    </nav>
-
-                    <!-- ── ALLOCATE TAB ── -->
-                    <div class="tab-panel active" id="tab-allocate">
-                        <div class="tab-intro">
-                            <h2>Allocate the $8 Billion Deal</h2>
-                            <p>Drag sliders to split the deal among the four groups.</p>
-                        </div>
-
-                        <div class="pie-chart-container">
-                            <canvas id="money-pie-chart" width="200" height="200"></canvas>
-                            <div class="pie-center-text">
-                                <span class="pie-total">$8B</span>
-                                <span class="pie-label">Total</span>
-                            </div>
-                        </div>
-
-                        <div class="allocation-buckets">
-                            <div class="bucket" data-stakeholder="players">
-                                <div class="bucket-header">
-                                    <span class="bucket-icon">&#9918;</span>
-                                    <span class="bucket-label">Players (Salary Pool)</span>
-                                    <span class="bucket-amount" id="players-amount">$3.6B</span>
-                                    <span class="bucket-percent" id="players-percent">45%</span>
-                                </div>
-                                <input type="range" class="allocation-slider" id="players-slider"
-                                       min="2.0" max="5.0" step="0.1" value="3.6">
-                            </div>
-
-                            <div class="bucket" data-stakeholder="owners">
-                                <div class="bucket-header">
-                                    <span class="bucket-icon">&#127970;</span>
-                                    <span class="bucket-label">Team Owners (Profit)</span>
-                                    <span class="bucket-amount" id="owners-amount">$2.4B</span>
-                                    <span class="bucket-percent" id="owners-percent">30%</span>
-                                </div>
-                                <input type="range" class="allocation-slider" id="owners-slider"
-                                       min="1.0" max="4.0" step="0.1" value="2.4">
-                            </div>
-
-                            <div class="bucket" data-stakeholder="networks">
-                                <div class="bucket-header">
-                                    <span class="bucket-icon">&#128250;</span>
-                                    <span class="bucket-label">Networks (Rights)</span>
-                                    <span class="bucket-amount" id="networks-amount">$1.2B</span>
-                                    <span class="bucket-percent" id="networks-percent">15%</span>
-                                </div>
-                                <input type="range" class="allocation-slider" id="networks-slider"
-                                       min="0.5" max="2.5" step="0.1" value="1.2">
-                            </div>
-
-                            <div class="bucket" data-stakeholder="league">
-                                <div class="bucket-header">
-                                    <span class="bucket-icon">&#127942;</span>
-                                    <span class="bucket-label">League Operations</span>
-                                    <span class="bucket-amount" id="league-amount">$0.8B</span>
-                                    <span class="bucket-percent" id="league-percent">10%</span>
-                                </div>
-                                <input type="range" class="allocation-slider" id="league-slider"
-                                       min="0.3" max="1.5" step="0.1" value="0.8">
-                            </div>
-                        </div>
-
-                        <div class="allocation-warning" id="allocation-warning" style="display: none;">
-                            <span class="warning-icon">&#9888;</span>
-                            <span class="warning-text">Total doesn't equal $8B — adjust sliders.</span>
-                        </div>
-                    </div>
-
-                    <!-- ── DETAILS TAB ── -->
-                    <div class="tab-panel" id="tab-details">
-                        <div class="details-locked-notice" id="details-locked-notice" style="display:none;">
-                            <div class="locked-icon">&#128274;</div>
-                            <p>Complete Round 1 first to unlock Deal Details.</p>
-                            <p class="locked-hint">Lock in your money allocation above, then return here.</p>
-                        </div>
-
-                        <div id="detail-sliders-content">
-                            <div class="tab-intro">
-                                <h2>Fine-Tune the Deal</h2>
-                                <p>Adjust these terms to satisfy stakeholder demands.</p>
-                            </div>
-
-                            <!-- Slider 1: Minimum Player Salary -->
-                            <div class="slider-group">
-                                <div class="slider-header">
-                                    <label class="slider-label">Minimum Player Salary</label>
-                                    <span class="slider-value" id="min-salary-value">$750K</span>
-                                </div>
-                                <input type="range" class="detail-slider" id="min-salary-slider"
-                                       min="400" max="1500" step="50" value="750">
-                                <div class="slider-range">
-                                    <span>$400K</span>
-                                    <span>$1.5M</span>
-                                </div>
-                                <p class="slider-impact" id="min-salary-impact">Current MLB minimum: $750K</p>
-                            </div>
-
-                            <!-- Slider 2: Revenue Sharing % -->
-                            <div class="slider-group">
-                                <div class="slider-header">
-                                    <label class="slider-label">Revenue Sharing %</label>
-                                    <span class="slider-value" id="revenue-share-value">35%</span>
-                                </div>
-                                <input type="range" class="detail-slider" id="revenue-share-slider"
-                                       min="10" max="60" step="5" value="35">
-                                <div class="slider-range">
-                                    <span>10%</span>
-                                    <span>60%</span>
-                                </div>
-                                <div class="competitive-balance">
-                                    <span class="balance-label">Competitive Balance:</span>
-                                    <div class="balance-meter">
-                                        <div class="balance-fill" id="balance-fill" style="width: 50%"></div>
-                                    </div>
-                                    <span class="balance-text" id="balance-text">Moderate</span>
-                                </div>
-                            </div>
-
-                            <!-- Slider 3: Game Start Times -->
-                            <div class="slider-group">
-                                <div class="slider-header">
-                                    <label class="slider-label">Game Start Times</label>
-                                    <span class="slider-value" id="start-time-value">7:30 PM</span>
-                                </div>
-                                <input type="range" class="detail-slider" id="start-time-slider"
-                                       min="0" max="4" step="1" value="2">
-                                <div class="slider-range">
-                                    <span>6 PM</span>
-                                    <span>10 PM</span>
-                                </div>
-                                <p class="slider-impact" id="start-time-impact">Classic baseball time slot</p>
-                            </div>
-
-                            <!-- Slider 4: Streaming Exclusives -->
-                            <div class="slider-group">
-                                <div class="slider-header">
-                                    <label class="slider-label">Streaming-Only Games</label>
-                                    <span class="slider-value" id="streaming-value">25%</span>
-                                </div>
-                                <input type="range" class="detail-slider" id="streaming-slider"
-                                       min="0" max="100" step="5" value="25">
-                                <div class="slider-range">
-                                    <span>0%</span>
-                                    <span>100%</span>
-                                </div>
-                                <div class="viewer-split">
-                                    <div class="viewer-bar">
-                                        <div class="cable-viewers" id="cable-viewers" style="width: 75%">
-                                            <span>Cable 75%</span>
-                                        </div>
-                                        <div class="streaming-viewers" id="streaming-viewers" style="width: 25%">
-                                            <span>Stream 25%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Slider 5: Player Salary Share -->
-                            <div class="slider-group">
-                                <div class="slider-header">
-                                    <label class="slider-label">Player Salary Share of Revenue</label>
-                                    <span class="slider-value" id="salary-share-value">48.5%</span>
-                                </div>
-                                <input type="range" class="detail-slider" id="salary-share-slider"
-                                       min="40" max="70" step="0.5" value="48.5">
-                                <div class="slider-range">
-                                    <span>40%</span>
-                                    <span>70%</span>
-                                </div>
-                                <p class="slider-impact" id="salary-share-impact">Current MLB: ~48.5% to players</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ── ADVISOR TAB ── -->
-                    <div class="tab-panel" id="tab-advisor">
-                        <div class="tab-intro">
-                            <h2>Deal Advisor</h2>
-                            <p>Real-time tips based on your current deal terms.</p>
-                        </div>
-                        <div class="advisor-tips-list" id="advisor-tips-list">
-                            <div class="advisor-tip">
-                                <span class="tip-icon">&#128161;</span>
-                                <span class="tip-text">Use Round 1 to nail the big money split, then use Round 2 to fine-tune the deal details.</span>
-                            </div>
-                        </div>
-
-                        <div class="advisor-unlocks-section">
-                            <div class="unlocks-title">Mini-Game Unlocks</div>
-                            <div class="unlock-status" id="unlock-salary">
-                                <span class="unlock-icon">&#128176;</span>
-                                <span class="unlock-label">Salary Boost</span>
-                                <span class="unlock-badge locked" id="unlock-salary-badge">LOCKED</span>
-                            </div>
-                            <div class="unlock-status" id="unlock-primetime">
-                                <span class="unlock-icon">&#128250;</span>
-                                <span class="unlock-label">Prime Time Guarantee</span>
-                                <span class="unlock-badge locked" id="unlock-primetime-badge">LOCKED</span>
-                            </div>
-                            <div class="unlock-status" id="unlock-market">
-                                <span class="unlock-icon">&#127967;</span>
-                                <span class="unlock-label">Market Flexibility</span>
-                                <span class="unlock-badge locked" id="unlock-market-badge">LOCKED</span>
-                            </div>
-                            <div class="unlock-status" id="unlock-credibility">
-                                <span class="unlock-icon">&#128290;</span>
-                                <span class="unlock-label">League Credibility +5</span>
-                                <span class="unlock-badge locked" id="unlock-credibility-badge">LOCKED</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-
-            <!-- Game Footer -->
-            <footer class="game-footer-v2">
-                <div class="footer-left">
-                    <button id="undo-btn" class="secondary-btn small" disabled>
-                        &#8617; Undo
-                    </button>
-                    <div class="progress-wrap">
-                        <span class="progress-label">Progress</span>
-                        <div class="progress-bar-v2">
-                            <div class="progress-fill-v2" id="game-progress" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <button id="lock-round-btn" class="primary-btn large">
-                    LOCK IN ROUND 1
-                </button>
-
-                <div class="footer-right">
-                    <button id="mini-game-btn" class="secondary-btn">
-                        <span>&#127918; Challenge Break</span>
-                    </button>
-                </div>
-            </footer>
-        </section>
-
-        <!-- ==================== MINI-GAME MODAL ==================== -->
-        <div id="mini-game-modal" class="modal">
-            <div class="modal-content mini-game-content">
-                <button class="modal-close" id="close-mini-game">&times;</button>
-
-                <!-- Mini-Game Selection -->
-                <div id="mini-game-select" class="mini-game-section">
-                    <h2>Challenge Break!</h2>
-                    <p>Complete a challenge to unlock a deal advantage</p>
-
-                    <div class="mini-game-options">
-                        <button class="mini-game-option" data-game="salary-match">
-                            <span class="game-icon">&#128176;</span>
-                            <span class="game-name">Player Salary Match</span>
-                            <span class="game-desc">Match players to salary tiers</span>
-                            <span class="game-reward">Unlock: Salary Boost</span>
-                        </button>
-                        <button class="mini-game-option" data-game="network-click">
-                            <span class="game-icon">&#128250;</span>
-                            <span class="game-name">Network Speed Click</span>
-                            <span class="game-desc">Click network logos in order</span>
-                            <span class="game-reward">Unlock: Prime Time Guarantee</span>
-                        </button>
-                        <button class="mini-game-option" data-game="stadium-puzzle">
-                            <span class="game-icon">&#127967;</span>
-                            <span class="game-name">Stadium Revenue</span>
-                            <span class="game-desc">Categorize teams by market size</span>
-                            <span class="game-reward">Unlock: Market Flexibility</span>
-                        </button>
-                        <button class="mini-game-option" data-game="cap-calculator">
-                            <span class="game-icon">&#128290;</span>
-                            <span class="game-name">Salary Cap Calculator</span>
-                            <span class="game-desc">Calculate the salary cap</span>
-                            <span class="game-reward">Unlock: League Credibility +5</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Salary Match Game -->
-                <div id="salary-match-game" class="mini-game-section" style="display: none;">
-                    <h2>Player Salary Match</h2>
-                    <p>Drag players to their correct salary tier! <span id="salary-match-timer">30</span>s</p>
-                    <div class="salary-match-container">
-                        <div class="player-cards" id="player-cards"></div>
-                        <div class="salary-tiers">
-                            <div class="salary-tier" data-tier="superstar">
-                                <span class="tier-label">Superstar ($30M+)</span>
-                                <div class="tier-dropzone" id="tier-superstar"></div>
-                            </div>
-                            <div class="salary-tier" data-tier="allstar">
-                                <span class="tier-label">All-Star ($15-30M)</span>
-                                <div class="tier-dropzone" id="tier-allstar"></div>
-                            </div>
-                            <div class="salary-tier" data-tier="midtier">
-                                <span class="tier-label">Mid-Tier ($5-15M)</span>
-                                <div class="tier-dropzone" id="tier-midtier"></div>
-                            </div>
-                            <div class="salary-tier" data-tier="minimum">
-                                <span class="tier-label">Minimum (&lt;$5M)</span>
-                                <div class="tier-dropzone" id="tier-minimum"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mini-game-result" id="salary-match-result" style="display: none;">
-                        <span class="result-text"></span>
-                        <button class="primary-btn" id="salary-match-done">Claim Reward</button>
-                    </div>
-                </div>
-
-                <!-- Network Click Game -->
-                <div id="network-click-game" class="mini-game-section" style="display: none;">
-                    <h2>Network Speed Click</h2>
-                    <p>Click the networks in the order shown! <span id="network-click-timer">20</span>s</p>
-                    <div class="network-sequence" id="network-sequence"></div>
-                    <div class="network-buttons" id="network-buttons">
-                        <button class="network-btn" data-network="espn">ESPN</button>
-                        <button class="network-btn" data-network="fox">FOX</button>
-                        <button class="network-btn" data-network="mlb-network">MLB Network</button>
-                        <button class="network-btn" data-network="apple">Apple TV+</button>
-                        <button class="network-btn" data-network="amazon">Amazon Prime</button>
-                    </div>
-                    <div class="click-progress">
-                        <span id="click-progress-text">0 / 5</span>
-                    </div>
-                    <div class="mini-game-result" id="network-click-result" style="display: none;">
-                        <span class="result-text"></span>
-                        <button class="primary-btn" id="network-click-done">Claim Reward</button>
-                    </div>
-                </div>
-
-                <!-- Stadium Revenue Game -->
-                <div id="stadium-puzzle-game" class="mini-game-section" style="display: none;">
-                    <h2>Stadium Revenue Distribution</h2>
-                    <p>Sort teams by market size! <span id="stadium-timer">30</span>s</p>
-                    <div class="stadium-container">
-                        <div class="market-teams" id="market-teams"></div>
-                        <div class="market-buckets">
-                            <div class="market-bucket" data-market="small">
-                                <span class="bucket-title">Small Market</span>
-                                <div class="bucket-dropzone" id="small-market-zone"></div>
-                            </div>
-                            <div class="market-bucket" data-market="medium">
-                                <span class="bucket-title">Medium Market</span>
-                                <div class="bucket-dropzone" id="medium-market-zone"></div>
-                            </div>
-                            <div class="market-bucket" data-market="large">
-                                <span class="bucket-title">Large Market</span>
-                                <div class="bucket-dropzone" id="large-market-zone"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mini-game-result" id="stadium-puzzle-result" style="display: none;">
-                        <span class="result-text"></span>
-                        <button class="primary-btn" id="stadium-puzzle-done">Claim Reward</button>
-                    </div>
-                </div>
-
-                <!-- Salary Cap Calculator Game -->
-                <div id="cap-calculator-game" class="mini-game-section" style="display: none;">
-                    <h2>Salary Cap Calculator</h2>
-                    <p>Calculate the salary cap from league revenue!</p>
-                    <div class="calculator-problems" id="calculator-problems"></div>
-                    <div class="calculator-score">
-                        <span id="calc-score">0 / 3 Correct</span>
-                    </div>
-                    <div class="mini-game-result" id="cap-calculator-result" style="display: none;">
-                        <span class="result-text"></span>
-                        <button class="primary-btn" id="cap-calculator-done">Claim Reward</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== DEMAND MODAL ==================== -->
-        <div id="demand-modal" class="modal demand-modal-overlay" style="display:none;">
-            <div class="modal-content demand-modal-content">
-                <div class="demand-header">
-                    <div class="demand-avatar" id="demand-avatar">&#9918;</div>
-                    <div class="demand-meta">
-                        <div class="demand-stakeholder" id="demand-stakeholder-name">Players Union</div>
-                        <div class="demand-label">COUNTER-DEMAND</div>
-                    </div>
-                </div>
-                <blockquote class="demand-quote" id="demand-quote">
-                    "We need better terms before we continue negotiations."
-                </blockquote>
-                <div class="demand-action">
-                    <div class="demand-fix-label">To earn +8 satisfaction, you must:</div>
-                    <div class="demand-fix" id="demand-fix">Adjust your deal terms</div>
-                </div>
-                <div class="demand-stakes">
-                    <span class="demand-bonus">+8 if met</span>
-                    <span class="demand-separator">·</span>
-                    <span class="demand-penalty">-5 if ignored</span>
-                </div>
-                <button id="demand-acknowledge-btn" class="primary-btn">
-                    Got It — I'll Review the Deal
-                </button>
-            </div>
-        </div>
-
-        <!-- ==================== COLLAPSE MODAL ==================== -->
-        <div id="collapse-modal" class="modal collapse-modal-overlay" style="display:none;">
-            <div class="modal-content collapse-modal-content">
-                <div class="collapse-icon">&#128680;</div>
-                <h2 class="collapse-title">DEAL COLLAPSING</h2>
-                <p class="collapse-body" id="collapse-body">
-                    A stakeholder has left the table. You must fix this immediately.
-                </p>
-                <div class="collapse-actions">
-                    <button id="recover-btn" class="primary-btn">
-                        Try to Recover
-                    </button>
-                    <button id="accept-collapse-btn" class="secondary-btn danger-btn">
-                        Accept Collapse
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Collapse Overlay (brief full-screen flash) -->
-        <div id="collapse-overlay" class="collapse-overlay" style="display:none;">
-            <div class="collapse-overlay-text">DEAL COLLAPSING</div>
-        </div>
-
-        <!-- ==================== ACT 3: RESULTS SCREEN ==================== -->
-        <section id="results-screen" class="screen">
-            <div class="results-container">
-                <div class="results-header" id="results-header">
-                    <div class="result-badge" id="result-badge">&#127942;</div>
-                    <h1 class="results-title" id="results-title">Deal Complete!</h1>
-                    <h2 class="results-subtitle" id="results-subtitle">Championship Deal</h2>
-                </div>
-
-                <div class="results-message" id="results-message">
-                    <p>You've balanced every stakeholder perfectly. The league is thriving!</p>
-                </div>
-
-                <!-- Final Satisfaction Scores -->
-                <div class="final-scores">
-                    <h3>Final Stakeholder Satisfaction</h3>
-                    <div class="final-bars">
-                        <div class="final-bar-row">
-                            <span class="bar-label">Players</span>
-                            <div class="final-bar">
-                                <div class="final-bar-fill players-fill" id="final-players-bar" style="width:0%"></div>
-                            </div>
-                            <span class="bar-percent" id="final-players-percent">0%</span>
-                        </div>
-                        <div class="final-bar-row">
-                            <span class="bar-label">Owners</span>
-                            <div class="final-bar">
-                                <div class="final-bar-fill owners-fill" id="final-owners-bar" style="width:0%"></div>
-                            </div>
-                            <span class="bar-percent" id="final-owners-percent">0%</span>
-                        </div>
-                        <div class="final-bar-row">
-                            <span class="bar-label">Networks</span>
-                            <div class="final-bar">
-                                <div class="final-bar-fill networks-fill" id="final-networks-bar" style="width:0%"></div>
-                            </div>
-                            <span class="bar-percent" id="final-networks-percent">0%</span>
-                        </div>
-                        <div class="final-bar-row">
-                            <span class="bar-label">Fans</span>
-                            <div class="final-bar">
-                                <div class="final-bar-fill fans-fill" id="final-fans-bar" style="width:0%"></div>
-                            </div>
-                            <span class="bar-percent" id="final-fans-percent">0%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- V2: Key Decisions -->
-                <div class="key-decisions-section" id="key-decisions-section">
-                    <h3>Key Decisions</h3>
-                    <ul class="key-decisions-list" id="key-decisions-list">
-                        <!-- Populated by JS -->
-                    </ul>
-                </div>
-
-                <!-- Deal Summary -->
-                <div class="deal-summary">
-                    <h3>Your Deal Summary</h3>
-                    <div class="summary-grid">
-                        <div class="summary-item">
-                            <span class="summary-label">Player Salary Pool</span>
-                            <span class="summary-value" id="summary-players">$3.6B</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Owner Profit Share</span>
-                            <span class="summary-value" id="summary-owners">$2.4B</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Minimum Salary</span>
-                            <span class="summary-value" id="summary-min-salary">$750K</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Revenue Sharing</span>
-                            <span class="summary-value" id="summary-revenue-share">35%</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Streaming Games</span>
-                            <span class="summary-value" id="summary-streaming">25%</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Player Share</span>
-                            <span class="summary-value" id="summary-salary-share">48.5%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- V2: Historical Comparison -->
-                <div class="historical-comparison" id="historical-comparison">
-                    <h3>How You Compare</h3>
-                    <div class="comparison-grid" id="comparison-grid">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
-
-                <!-- Claim Code Section -->
-                <div class="claim-code-section" id="claim-code-section">
-                    <div class="claim-code-header">
-                        <h3>Your Achievement Code</h3>
-                        <p>Screenshot this code to claim your achievement!</p>
-                    </div>
-                    <div class="claim-code-display" id="claim-code-display">
-                        <span class="claim-code" id="claim-code">MLB-GOLD-X8K2P9-2025</span>
-                    </div>
-                    <p class="claim-code-note">SCREENSHOT THIS CODE</p>
-                </div>
-
-                <!-- Failed Deal Section -->
-                <div class="failed-section" id="failed-section" style="display: none;">
-                    <div class="failed-message">
-                        <span class="failed-icon">&#10060;</span>
-                        <h3>DEAL COLLAPSED</h3>
-                        <p id="failed-reason">A stakeholder walked away from negotiations.</p>
-                    </div>
-                    <p class="failed-tip">Tip: Keep all stakeholders above 40% satisfaction to maintain the deal.</p>
-                </div>
-
-                <div class="results-actions">
-                    <button id="try-again-btn" class="primary-btn">
-                        <span>TRY AGAIN</span>
-                    </button>
-                    <button id="share-results-btn" class="secondary-btn">
-                        <span>SHARE RESULTS</span>
-                    </button>
-                </div>
-
-                <div class="learning-outcomes">
-                    <h3>What You Learned</h3>
-                    <ul class="outcomes-list">
-                        <li><span class="outcome-icon">&#9989;</span> League economics work like a giant co-owned corporation</li>
-                        <li><span class="outcome-icon">&#9989;</span> Media rights fund player salaries through the salary cap</li>
-                        <li><span class="outcome-icon">&#9989;</span> CBA negotiations split money between players and owners</li>
-                        <li><span class="outcome-icon">&#9989;</span> Every decision has trade-offs that affect different groups</li>
-                        <li><span class="outcome-icon">&#9989;</span> One media deal can reshape league economics for years</li>
-                    </ul>
+                <div class="case-actions">
+                    <button class="primary-btn" data-goto="round1">MAKE THE CALL →</button>
                 </div>
             </div>
         </section>
 
-        <!-- ==================== LOADING SCREEN ==================== -->
-        <div id="loading-screen" class="loading-overlay">
-            <div class="loading-content">
-                <div class="loading-spinner">
-                    <div class="baseball-spin"></div>
-                </div>
-                <p class="loading-text">Loading MLB Money Maker...</p>
+        <!-- ==================== 3. DECISION ROUND 1 ==================== -->
+        <section id="round1" class="screen">
+            <div class="case-wrap">
+                <header class="section-head">
+                    <div class="case-kicker">DECISION 1 · FAN STRATEGY</div>
+                    <h1 class="case-headline">Bring the Fans Back</h1>
+                    <p class="case-deck">Empty seats are loud — in a bad way. Pick one move to get fans through the door. What would fans notice?</p>
+                </header>
+                <div class="metric-rail compact" data-rail="round1"></div>
+                <div class="decision-grid" data-decisions="round1"></div>
             </div>
-        </div>
+        </section>
+
+        <!-- ==================== 4. CONSEQUENCE 1 ==================== -->
+        <section id="consequence1" class="screen">
+            <div class="case-wrap">
+                <header class="section-head">
+                    <div class="case-kicker">SEE THE FALLOUT</div>
+                    <h1 class="case-headline">The Recap</h1>
+                </header>
+                <div class="consequence-mount" data-consequence="round1"></div>
+                <div class="case-actions">
+                    <button class="primary-btn" data-goto="round2">NEXT CALL →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 5. DECISION ROUND 2 ==================== -->
+        <section id="round2" class="screen">
+            <div class="case-wrap">
+                <header class="section-head">
+                    <div class="case-kicker">DECISION 2 · SPONSOR STRATEGY</div>
+                    <h1 class="case-headline">Handle the Sponsors</h1>
+                    <p class="case-deck">Companies are lining up to be in your arena. How you say yes matters. What would sponsors care about — and what would fans?</p>
+                </header>
+                <div class="metric-rail compact" data-rail="round2"></div>
+                <div class="decision-grid" data-decisions="round2"></div>
+            </div>
+        </section>
+
+        <!-- ==================== 6. CONSEQUENCE 2 ==================== -->
+        <section id="consequence2" class="screen">
+            <div class="case-wrap">
+                <header class="section-head">
+                    <div class="case-kicker">SEE THE FALLOUT</div>
+                    <h1 class="case-headline">The Recap</h1>
+                </header>
+                <div class="consequence-mount" data-consequence="round2"></div>
+                <div class="case-actions">
+                    <button class="primary-btn" data-goto="round3">FINAL CALL →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 7. DECISION ROUND 3 ==================== -->
+        <section id="round3" class="screen">
+            <div class="case-wrap">
+                <header class="section-head">
+                    <div class="case-kicker">DECISION 3 · THE OWNERSHIP MEETING</div>
+                    <h1 class="case-headline">Defend the Plan</h1>
+                    <p class="case-deck">Ownership wants one plan for the homestand. This is the call you'll have to stand behind. What would ownership ask?</p>
+                </header>
+                <div class="metric-rail compact" data-rail="round3"></div>
+                <div class="decision-grid" data-decisions="round3"></div>
+            </div>
+        </section>
+
+        <!-- ==================== 8. FINAL RECAP ==================== -->
+        <section id="recap" class="screen">
+            <div class="case-wrap">
+                <div class="branding-header masthead">
+                    <div class="bow-logo">BOW SPORTS CAPITAL</div>
+                    <div class="presents">FRONT OFFICE TAKEAWAY</div>
+                </div>
+                <header class="section-head">
+                    <div class="case-kicker">THE FINAL REPORT</div>
+                    <h1 class="case-headline">Your Homestand Plan</h1>
+                </header>
+                <div class="recap-mount" data-recap="final"></div>
+                <div class="case-actions">
+                    <button class="secondary-btn" data-restart="true">RUN IT AGAIN</button>
+                </div>
+            </div>
+        </section>
+
     </div>
 
-    <!-- Scripts -->
-    <script src="mlb-redesign-game/js/data.js"></script>
-    <script src="mlb-redesign-game/js/calculations.js"></script>
-    <script src="mlb-redesign-game/js/codegen.js"></script>
-    <script src="mlb-redesign-game/js/interactions.js"></script>
-    <script src="mlb-redesign-game/js/ui.js"></script>
-    <script src="mlb-redesign-game/js/game.js"></script>
+    <!-- Front office case engine (deterministic, no external deps) -->
+    <script src="mlb-redesign-game/js/front-office.js"></script>
 </body>
 </html>
